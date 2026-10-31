@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one column, black on white. Setup row, score line, the moment, the decision tree (left-to-right process chart) with its planning panel, the result, then reads + coach. */
+/* Layout: one column, black on white. 1) choose a simple opponent, 2) the editable tree (opponent → they do → you answer → result), 3) the exchange reveal. */
 :root{
   --paper:#ffffff; --ink:#000000; --mid:#555555; --hair:#cccccc; --soft:#f2f2f2;
   --f-display:"Barlow Condensed","Arial Narrow",sans-serif;
@@ -18,126 +18,70 @@ body{font-family:var(--f-body);font-size:15px;line-height:1.5;
   padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 48px}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--ink);outline-offset:3px}
-.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:8px 20px;border-bottom:1.5px solid var(--ink);padding-bottom:14px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,5vw,42px);line-height:.95;margin:0;text-transform:uppercase}
+.head p{margin:6px 0 0;color:var(--mid);max-width:72ch}
+.live{font-size:13px;color:var(--mid);display:flex;align-items:center;gap:8px}
+.live input{margin:0}
+h2{margin:0 0 10px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+h2 em{font-style:normal;font-family:var(--f-mono);letter-spacing:0;text-transform:none;font-weight:400;color:var(--mid)}
+.muted{color:var(--mid)}
 
-.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:8px 20px}
-h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,5vw,42px);line-height:.95;margin:0;text-transform:uppercase;letter-spacing:.01em}
-.head p{margin:6px 0 0;color:var(--mid);max-width:70ch}
-.live{font-size:13px;color:var(--mid);display:flex;align-items:center;gap:6px}
-.live i{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--ink);display:inline-block}
-.live.on i{background:var(--ink)}
+.fencers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:860px){.fencers{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:460px){.fencers{grid-template-columns:1fr}}
+.fc{text-align:left;background:var(--paper);border:1.5px solid var(--ink);border-radius:8px;padding:12px;cursor:pointer;display:grid;gap:4px;align-content:start}
+.fc:hover{background:var(--soft)}
+.fc.on{background:var(--ink);color:var(--paper)}
+.fc.on .muted{color:#bbbbbb}
+.fc b{font-size:16px;font-weight:600}
+.fc .ty{font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.fc dl{margin:4px 0 0;display:grid;grid-template-columns:auto 1fr;gap:1px 10px;font-size:13.5px}
+.fc dt{opacity:.7}
+.fc dd{margin:0}
 
-.setup{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);padding-block:12px}
-.setup label{display:grid;gap:3px;font-size:12px;color:var(--mid)}
-.setup select,.setup input[type=number]{background:var(--paper);border:1px solid var(--ink);border-radius:5px;padding:6px 8px;color:var(--ink);min-width:0}
-.setup input[type=number]{width:5.5em}
-.setup .chk{display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--ink);padding-bottom:6px}
-.drill{display:contents}
-.drill[hidden]{display:none}
+.ex{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;margin-bottom:14px}
+.ex .cue{font-size:16px}
+.ex .cue b{font-weight:600}
 
-.board{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
-.board .side{display:flex;align-items:baseline;gap:10px;min-width:0}
-.board .nm{font-family:var(--f-body);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.board .sc{font-size:clamp(28px,5vw,40px);line-height:1}
-.board .mid{text-align:center}
-.board .clock{font-size:clamp(20px,3.6vw,28px);line-height:1}
-.board .per{font-family:var(--f-body);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-top:4px}
-
-.card{border:1.5px solid var(--ink);border-radius:8px;padding:16px;min-width:0;background:var(--paper)}
-.card > h2{margin:0 0 12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
-.card > h2 em{font-style:normal;font-family:var(--f-mono);letter-spacing:0;text-transform:none;font-weight:400;color:var(--mid)}
-.piste{overflow-x:auto}
-.piste svg{display:block;width:100%;min-width:420px;height:auto}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.chip{border:1px solid var(--ink);border-radius:999px;padding:2px 10px;font-size:13px;white-space:nowrap}
-.chip b{font-weight:600}
-.chip.k{background:var(--ink);color:var(--paper)}
-.opp{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair);font-size:14px}
-.opp b{font-weight:600}
-.opp .sty{color:var(--mid)}
-.opp .adapt{margin-top:4px;font-weight:500}
-.narr{margin-top:12px;padding:12px 14px;border:1px solid var(--hair);border-radius:6px;font-size:16px;line-height:1.6;max-width:76ch}
-.narr.wait{color:var(--mid)}
-.cues{margin-top:10px;font-size:13.5px;color:var(--mid)}
-.cues span{display:block}
-.cues span::before{content:"– ";color:var(--ink)}
-.lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--ink);margin-bottom:2px}
-
-.btn{background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:14px}
+.tscroll{overflow-x:auto;padding:4px 2px 10px}
+.tree{position:relative;display:grid;grid-template-columns:200px 220px 270px 300px;column-gap:56px;row-gap:22px;width:max-content}
+.tree svg{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+.colhd{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;border-bottom:1.5px solid var(--ink);padding-bottom:3px;align-self:end}
+.node{position:relative;background:var(--paper);border:1.5px solid var(--ink);border-radius:8px;padding:10px 12px;display:grid;gap:8px;align-content:start;font-size:14px;z-index:1}
+.node .t{font-weight:600}
+.node .s{font-size:13px;color:var(--mid)}
+.node.opp{grid-row:2 / span 2;align-self:center}
+.node.actual{border-width:3.5px;padding:8px 10px}
+.node.bet{outline:2px dashed var(--ink);outline-offset:5px}
+.node.result.empty{border-style:dotted;border-width:2px;color:var(--mid)}
+.tag{display:inline-block;border:1px solid var(--ink);border-radius:999px;padding:0 8px;font-size:12px;margin-right:4px}
+.tag.k{background:var(--ink);color:var(--paper)}
+.seg{display:inline-flex;border:1px solid var(--ink);border-radius:5px;overflow:hidden;max-width:100%}
+.seg button{background:var(--paper);border:0;border-right:1px solid var(--ink);padding:3px 9px;font-size:12.5px;cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--ink);color:var(--paper)}
+.node select,.node textarea{width:100%;background:var(--paper);border:1px solid var(--ink);border-radius:5px;padding:6px 8px;font-size:14px;color:var(--ink)}
+.node textarea{min-height:58px;resize:vertical;line-height:1.4}
+.fl{font-size:12px;color:var(--mid);display:grid;gap:3px}
+.btn{background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:6px;padding:6px 12px;font-weight:600;cursor:pointer;font-size:13.5px}
 .btn.o{background:var(--paper);color:var(--ink)}
 .btn.o:hover{background:var(--ink);color:var(--paper)}
 .btn:disabled{opacity:.35;cursor:not-allowed}
 .btn.o:disabled:hover{background:var(--paper);color:var(--ink)}
-.btn kbd{font-family:var(--f-mono);font-size:11px;opacity:.7;margin-left:6px}
-.mini{background:var(--paper);border:1px solid var(--ink);border-radius:5px;padding:3px 10px;font-size:12px;cursor:pointer;letter-spacing:0;text-transform:none;font-weight:500}
-.mini:hover{background:var(--ink);color:var(--paper)}
-.row{display:flex;flex-wrap:wrap;gap:8px}
-.note{font-size:12.5px;color:var(--mid);margin:8px 0 0}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+.res{display:grid;gap:6px}
+.res .big{font-family:var(--f-display);font-weight:700;font-size:22px;text-transform:uppercase;line-height:1}
+.res .misread{border-top:1px dashed var(--ink);padding-top:6px;font-size:13.5px}
+.coach{font-size:13.5px;white-space:pre-wrap;border-top:1px solid var(--hair);padding-top:6px}
+.coach.wait{color:var(--mid)}
+.key{font-size:12.5px;color:var(--mid);margin:6px 0 0;max-width:90ch}
 
-/* decision tree: left-to-right process chart */
-.intro{margin:0 0 12px;color:var(--mid);font-size:14px;max-width:80ch}
-.tscroll{overflow-x:auto;padding-bottom:4px}
-.tz{position:relative}
-.tz svg{position:absolute;left:0;top:0;overflow:visible}
-.colhd{position:absolute;top:0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;border-bottom:1.5px solid var(--ink);padding-bottom:3px}
-.tn{position:absolute;background:var(--paper);color:var(--ink);border:1.5px solid var(--ink);border-radius:6px;padding:7px 9px;display:flex;flex-direction:column;align-items:stretch;font:12.5px/17px var(--f-body);cursor:pointer;text-align:left}
-.tn span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tn .b{font-weight:600;font-size:13px;display:flex;justify-content:space-between;gap:6px}
-.tn .b i{font-style:normal;font-family:var(--f-mono);font-weight:500}
-.tn .d{color:var(--mid)}
-.tn:hover{background:var(--soft)}
-.tn.sel{background:var(--ink);color:var(--paper)}
-.tn.sel .d{color:#bbbbbb}
-.tn.best{border-style:double;border-width:4px;padding:5px 7px}
-.tn.beat{border-style:dashed}
-.tn.none{border-style:dotted;border-width:2px}
-.tn.actual{border-width:3.5px;padding:5px 7px}
-.tn.played{outline:2px dashed var(--ink);outline-offset:4px}
-.tkey{font-size:12.5px;color:var(--mid);margin:10px 0 0;max-width:90ch}
-.ed{margin-top:14px;border-top:1.5px solid var(--ink);padding-top:14px;display:grid;gap:10px}
-.edh b{font-weight:600}
-.edh small{display:block;color:var(--mid);font-size:13px}
-.fld{display:grid;gap:4px;font-size:13px;color:var(--mid)}
-textarea,.sel{width:100%;background:var(--paper);border:1px solid var(--ink);border-radius:5px;padding:8px 10px;color:var(--ink);resize:vertical}
-textarea{min-height:64px;line-height:1.45}
-.seg{display:inline-flex;border:1px solid var(--ink);border-radius:5px;overflow:hidden;width:max-content;max-width:100%}
-.seg button{background:var(--paper);border:0;border-right:1px solid var(--ink);padding:4px 12px;font-size:13px;cursor:pointer}
-.seg button:last-child{border-right:0}
-.seg button.on{background:var(--ink);color:var(--paper)}
-.fb{border:1px solid var(--ink);border-radius:6px;padding:10px 12px;font-size:14px;white-space:pre-wrap;max-width:80ch}
-.fb .ex{margin-top:6px}
-.fb .ex.wait{color:var(--mid)}
-.press{margin:4px 0 0;padding-left:18px;font-size:13.5px;color:var(--mid)}
-.review{margin-top:14px;border-top:1px solid var(--hair);padding-top:12px;display:grid;gap:8px}
-.review .out{white-space:pre-wrap;max-width:80ch;font-size:14.5px}
-
-.call{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,5vw,40px);line-height:1;text-transform:uppercase;letter-spacing:.02em}
-.callsub{color:var(--mid);margin-top:4px;max-width:80ch}
-.verdicts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-.voice{margin-top:14px;display:grid;gap:10px}
-.voice .oppline{font-style:italic;max-width:70ch}
-.voice .coach{max-width:80ch;white-space:pre-wrap}
-.summary{white-space:pre-wrap;max-width:76ch}
-
-.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
-@media (max-width:800px){.two{grid-template-columns:1fr}}
-.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.stat{border:1px solid var(--hair);border-radius:6px;padding:8px 10px}
-.stat b{display:block;font-family:var(--f-mono);font-size:20px;font-weight:500;font-variant-numeric:tabular-nums}
-.stat span{font-size:12px;color:var(--mid)}
-.calib{margin-top:10px;font-size:13px;color:var(--mid)}
-.trow{display:grid;grid-template-columns:9em minmax(0,1fr) 2.5em;align-items:center;gap:8px;font-size:13px;padding:2px 0}
-.trow .num{font-family:var(--f-mono);text-align:right;color:var(--mid);font-size:12px}
-.bar{height:10px;border:1px solid var(--ink);border-radius:2px;overflow:hidden}
-.bar i{display:block;height:100%;background:var(--ink)}
-.habits{margin-top:10px;display:grid;gap:2px}
-.chat{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow:auto;margin-bottom:10px}
-.msg{font-size:14px;padding:8px 10px;border-radius:6px;max-width:92%;white-space:pre-wrap}
-.msg.u{align-self:flex-end;background:var(--ink);color:var(--paper)}
-.msg.a{align-self:flex-start;border:1px solid var(--ink)}
-.msg.sys{align-self:stretch;color:var(--mid);font-size:13px;padding:0}
-.chatform{display:flex;gap:6px}
-.chatform input{flex:1;min-width:0;border:1px solid var(--ink);border-radius:5px;padding:8px 10px;background:var(--paper)}
+.reveal{border:1.5px solid var(--ink);border-radius:8px;padding:16px;display:grid;gap:8px}
+.reveal .call{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,4.5vw,36px);line-height:1;text-transform:uppercase}
+.reveal p{margin:0;max-width:80ch}
+.log{font-size:13.5px;color:var(--mid)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -145,903 +89,323 @@ textarea{min-height:64px;line-height:1.45}
   <header class="head">
     <div>
       <h1>Épée Read Room</h1>
-      <p>Each exchange freezes before you move. Map what your opponent might do, plan your answer to each, check it with your coach, then play the branch you believe in.</p>
+      <p>Level 1: single actions. Each opponent has one attack and one defence. Build your tree for that opponent, check every answer, then read one exchange at a time.</p>
     </div>
-    <span class="live" id="live"><i></i><span id="liveText">Checking live role-play…</span></span>
+    <label class="live"><input type="checkbox" id="liveToggle" checked> <span id="liveText">Coach explanations by Claude</span></label>
   </header>
 
-  <div class="setup">
-    <label>Mode<select id="mode"><option value="bout">Full bout</option><option value="drill">Scenario drill</option></select></label>
-    <label>Opponent<select id="persona"></select></label>
-    <label>Format<select id="format"><option value="pool">Pool · 5 · 3:00</option><option value="de">DE · 15 · 3×3:00</option></select></label>
-    <span class="drill" id="drillBox" hidden>
-      <label>You<input id="dMe" type="number" min="0" max="14" value="4"></label>
-      <label>Them<input id="dOpp" type="number" min="0" max="14" value="4"></label>
-      <label>Clock s<input id="dClock" type="number" min="1" max="180" value="25"></label>
-      <label>Back foot m<input id="dBack" type="number" min="0.2" max="6" step="0.1" value="1.6"></label>
-      <label>Distance<select id="dBand"><option value="far">Out of distance</option><option value="advlunge">Advance-lunge</option><option value="lunge" selected>Lunge</option><option value="close">Close quarters</option></select></label>
-    </span>
-    <label class="chk"><input type="checkbox" id="liveToggle" checked> Live role-play</label>
-    <button class="btn" id="startBtn" type="button">Start</button>
-  </div>
-
-  <section class="board" aria-label="Score">
-    <div class="side"><span class="nm">You</span><span class="sc" id="scMe">0</span></div>
-    <div class="mid"><div class="clock" id="clock">3:00</div><div class="per" id="per">Pool · to 5</div></div>
-    <div class="side"><span class="sc" id="scOpp">0</span><span class="nm" id="oppName">Opponent</span></div>
+  <section aria-labelledby="h1s">
+    <h2 id="h1s"><span>1 · Choose an opponent</span></h2>
+    <div class="fencers" id="fencers"></div>
   </section>
 
-  <section class="card" aria-labelledby="mHd">
-    <h2 id="mHd"><span>The moment</span><em id="exNo">Exchange 1</em></h2>
-    <div class="piste" id="piste"></div>
-    <div class="chips" id="chips"></div>
-    <div class="opp" id="oppCard"></div>
-    <div class="narr" id="narr" aria-live="polite"></div>
-    <div class="cues" id="cues"></div>
+  <section aria-labelledby="h2s">
+    <h2 id="h2s"><span>2 · Your decision tree</span><em id="exNo"></em></h2>
+    <div class="ex" id="exBox"></div>
+    <div class="tscroll" id="tscroll"><div class="tree" id="tree"></div></div>
+    <p class="key">Edit the tree directly: mark how likely each branch is, pick your answer and write why. <b>Check</b> shows the result and what happens if you misread. <b>Bet on this</b> commits your read for this exchange. Your tree is kept for each opponent.</p>
   </section>
 
-  <section class="card" id="result" hidden aria-labelledby="rHd">
-    <h2 id="rHd"><span>Resolution</span><em id="resEx"></em></h2>
-    <div class="call" id="call"></div>
-    <div class="callsub" id="callSub"></div>
-    <div class="verdicts" id="verdicts"></div>
-    <div class="voice">
-      <div><div class="lbl" id="oppWho">Opponent</div><div class="oppline" id="oppLine"></div></div>
-      <div><div class="lbl">Your coach</div><div class="coach" id="coach"></div></div>
-    </div>
-    <div class="row" style="margin-top:16px">
-      <button class="btn" id="nextBtn" type="button">Next exchange<kbd>N</kbd></button>
-      <button class="btn o" id="deepBtn" type="button">Deeper analysis</button>
-    </div>
+  <section class="reveal" id="reveal" hidden aria-live="polite">
+    <div class="call" id="rCall"></div>
+    <p id="rText"></p>
+    <p class="muted" id="rWhy"></p>
+    <div class="row"><button class="btn" type="button" id="nextBtn">Next exchange</button></div>
   </section>
 
-  <section class="card" id="boutEnd" hidden aria-labelledby="bHd">
-    <h2 id="bHd"><span>Bout over</span></h2>
-    <div class="call" id="endCall"></div>
-    <p class="callsub" id="endSub"></p>
-    <div class="summary" id="endSummary"></div>
-    <div class="row" style="margin-top:16px">
-      <button class="btn" id="debriefBtn" type="button">Full debrief from your coach</button>
-      <button class="btn o" id="againBtn" type="button">New bout</button>
-    </div>
-  </section>
-
-  <section class="card" id="treeCard" aria-labelledby="tHd">
-    <h2 id="tHd"><span>Decision tree</span><span class="row"><button class="mini" type="button" id="expandAll">Expand all</button><button class="mini" type="button" id="collapseAll">Collapse all</button></span></h2>
-    <p class="intro" id="treeIntro"></p>
-    <div class="tscroll" id="treeScroll"><div id="tree"></div></div>
-    <p class="tkey">Value: expected touches for you, +1 your touch, −1 theirs. Lights: [you, double, them, no touch] in %. Double border: best answer. Dashed: their action that beats your answer.</p>
-    <div class="ed" id="treeEd"></div>
-    <div class="review">
-      <div class="row"><button class="btn o" type="button" id="reviewBtn">Review my whole tree</button></div>
-      <div class="out" id="reviewOut"></div>
-    </div>
-  </section>
-
-  <div class="two">
-    <section class="card" aria-labelledby="stHd">
-      <h2 id="stHd"><span>Your reads</span><em id="stN">0 exchanges</em></h2>
-      <div class="stats">
-        <div class="stat"><b id="stRead">–</b><span>Exact reads</span></div>
-        <div class="stat"><b id="stFam">–</b><span>Right family</span></div>
-        <div class="stat"><b id="stDec">–</b><span>Best or sound</span></div>
-      </div>
-      <div class="calib" id="calib"></div>
-      <div class="calib" id="treeStat"></div>
-      <div class="habits" id="habits"></div>
-    </section>
-    <section class="card" aria-labelledby="cHd">
-      <h2 id="cHd"><span>Corner coach</span></h2>
-      <div class="chat" id="chat"><div class="msg sys">Ask anything between exchanges: why a branch is wrong, what the opponent is setting up, how to play 4–4 with 20 seconds left.</div></div>
-      <form class="chatform" id="chatForm"><input id="chatIn" placeholder="Ask your coach…" autocomplete="off" aria-label="Message to your coach"><button class="btn" type="submit">Ask</button></form>
-    </section>
-  </div>
+  <p class="log" id="log"></p>
 </div>
 
 <script>
 (function(){
 const $ = s => document.querySelector(s);
-const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const pct = p => Math.round(p*100) + '%';
-const sgn = v => (v>=0?'+':'') + v.toFixed(2);
-const fmt = s => { s = Math.max(0, Math.ceil(s)); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); };
-const pick = a => a[Math.floor(Math.random()*a.length)];
 
-/* ================= Tactical model ================= */
-const INTENTS = [
-  {id:'prep',     label:'Preparation',      sub:'Steps in to take distance', fam:'off'},
-  {id:'direct',   label:'Direct attack',    sub:'Lunge or flèche, no feint', fam:'off'},
-  {id:'compound', label:'Compound attack',  sub:'Feint, then deceive your parry', fam:'off'},
-  {id:'blade',    label:'Attack on blade',  sub:'Beat or bind, then hit', fam:'off'},
-  {id:'line',     label:'Point in line',    sub:'Arm extended, threat held', fam:'def'},
-  {id:'counter',  label:'Counter-attack',   sub:'Waits to stop-hit your arm', fam:'def'},
-  {id:'parry',    label:'Parry-riposte',    sub:'Sits back for your blade', fam:'def'},
-  {id:'draw',     label:'Draw',             sub:'Gives ground to pull you in', fam:'def'},
-  {id:'hold',     label:'Hold',             sub:'Controls distance, runs clock', fam:'def'}
+/* ---------- Actions ---------- */
+// What the opponent can do
+const ACT = {
+  attack:  {label:'Simple attack',  sub:'Lunge or flèche, no feint', cue:'Weight shifting onto the front leg'},
+  feint:   {label:'Feint attack',   sub:'Feint, then disengage around your parry', cue:'Point drawing small circles at your guard'},
+  beat:    {label:'Beat attack',    sub:'Knock your blade aside, then hit', cue:'Blade drifting toward yours'},
+  counter: {label:'Counter-attack', sub:'Waits, then stop-hits your arm', cue:'Arm loose, weight sitting back, waiting'},
+  parry:   {label:'Parry-riposte',  sub:'Blocks your blade, then hits back', cue:'Guard closed tight, small steps back'},
+  retreat: {label:'Retreat',        sub:'Steps back out of your reach', cue:'Back foot already moving, keeping the gap long'},
+  line:    {label:'Point in line',  sub:'Arm straight, point aimed at you', cue:'Arm straightening, point settling on your chest'}
+};
+// What you can answer with
+const ANS = {
+  attack:  {label:'Simple attack',    sub:'Go straight in'},
+  feint:   {label:'Feint attack',     sub:'Show a threat, go around their parry'},
+  beat:    {label:'Beat attack',      sub:'Knock their blade, then hit'},
+  counter: {label:'Counter-attack',   sub:'Stop-hit their arm as they come'},
+  parry:   {label:'Parry-riposte',    sub:'Block, then hit back'},
+  retreat: {label:'Retreat',          sub:'Step out of reach'},
+  second:  {label:'Second intention', sub:'Fake attack to draw their action, then hit it'}
+};
+// Result of YOUR answer (row) against THEIR action (column): you | them | double | none, with the reason.
+const R = (r, why) => ({r, why});
+const TABLE = {
+  attack: {
+    attack:R('double','Both attack at once. In épée both lights go on.'),
+    feint:R('you','You go straight in while they spend time on the feint.'),
+    beat:R('you','Your attack lands while they are still looking for your blade.'),
+    counter:R('them','Your arm comes forward into their stop-hit. The hit to the arm arrives first.'),
+    parry:R('them','A simple attack is exactly what a parrier wants. They parry and riposte.'),
+    retreat:R('none','They step out of distance and your attack falls short.'),
+    line:R('them','You run onto their straight arm.')
+  },
+  feint: {
+    attack:R('them','They attack straight into your feint. A feint costs time.'),
+    feint:R('none','Two feints, nobody commits.'),
+    beat:R('you','You disengage around their beat and hit.'),
+    counter:R('them','Your feint is the moment they wait for. They stop-hit your arm.'),
+    parry:R('you','The feint draws their parry, you go around it and hit.'),
+    retreat:R('none','They retreat and your feint finds nothing.'),
+    line:R('them','Feinting into a point in line runs you onto it.')
+  },
+  beat: {
+    attack:R('them','The beat costs time. Their direct attack lands first.'),
+    feint:R('you','You catch their blade during the feint and hit.'),
+    beat:R('none','The blades clash and nothing lands.'),
+    counter:R('you','The beat knocks their waiting arm aside and you hit.'),
+    parry:R('them','They parry your finish after the beat and riposte.'),
+    retreat:R('none','They retreat before you find the blade.'),
+    line:R('you','The beat clears their line and you hit. This is the textbook answer to a line.')
+  },
+  counter: {
+    attack:R('double','You stop-hit a committed attack. Both lights.'),
+    feint:R('you','You stop-hit their arm during the feint.'),
+    beat:R('them','They beat your extended blade aside and hit.'),
+    counter:R('none','You both wait. Nothing happens.'),
+    parry:R('them','They take your extended blade with the parry and riposte.'),
+    retreat:R('none','They retreat and there is nothing to stop-hit.'),
+    line:R('double','Two straight arms. Both lights.')
+  },
+  parry: {
+    attack:R('you','You parry their simple attack and riposte.'),
+    feint:R('them','Their feint draws your parry and they go around it.'),
+    beat:R('them','Their beat opens your guard before you can parry.'),
+    counter:R('none','You both wait. Nothing happens.'),
+    parry:R('none','You both wait. Nothing happens.'),
+    retreat:R('none','You wait, they retreat. Nothing happens.'),
+    line:R('none','You wait behind your guard, they hold the line. Nothing happens.')
+  },
+  retreat: {
+    attack:R('none','Your retreat takes you out of reach. Their attack falls short.'),
+    feint:R('none','You step away from the feint.'),
+    beat:R('none','You step away before they find your blade.'),
+    counter:R('none','You both move away. Nothing happens.'),
+    parry:R('none','Nothing happens.'),
+    retreat:R('none','You both retreat. Nothing happens.'),
+    line:R('none','You stay out of reach of their point.')
+  },
+  second: {
+    attack:R('them','Your fake attack is too slow against a real one.'),
+    feint:R('none','Two probing actions. Nothing lands.'),
+    beat:R('them','They beat your half-extended blade and hit.'),
+    counter:R('you','Your fake attack draws their stop-hit, you parry it and hit. This is counter-time.'),
+    parry:R('none','They parry your fake attack, but you never committed. Nothing lands.'),
+    retreat:R('none','They retreat before you can draw anything.'),
+    line:R('you','Your fake attack draws their line, you take the blade and hit.')
+  }
+};
+const VAL = {you:1, double:0, none:0, them:-1};
+const RESULT_TXT = {you:'You score', them:'They score', double:'Double', none:'No touch'};
+const LIKE = ['?', 'Unlikely', 'Possible', 'Likely'];
+
+/* ---------- Simple opponents ---------- */
+const FENCERS = [
+  {id:'clara', name:'Clara', she:'she', type:'Counter-attacker', off:'attack', def:'counter', pDef:.7,
+   desc:'Prefers to wait for you and stop-hit your arm. Attacks straight when she does go.'},
+  {id:'pierre', name:'Pierre', she:'he', type:'Parrier', off:'feint', def:'parry', pDef:.65,
+   desc:'Prefers to sit back and parry. When he attacks, he uses a feint.'},
+  {id:'rafa', name:'Rafa', she:'he', type:'Rusher', off:'attack', def:'retreat', pDef:.3,
+   desc:'Prefers to go first with a long attack. Runs back when you press.'},
+  {id:'lina', name:'Lina', she:'she', type:'Line holder', off:'beat', def:'line', pDef:.6,
+   desc:'Prefers to hold her point in line. Attacks by beating your blade.'}
 ];
-const RESPONSES = [
-  {id:'attack',      label:'Direct attack',     sub:'Lunge or flèche to open target', move:.3},
-  {id:'compound',    label:'Feint-disengage',   sub:'Draw the parry, go around it', move:.3},
-  {id:'beat',        label:'Beat or bind',      sub:'Take the blade, then hit', move:.3},
-  {id:'intoPrep',    label:'Attack into prep',  sub:'Hit on their step: arm, toe, body', move:.4},
-  {id:'counterTime', label:'Second intention',  sub:'False attack, then counter-time', move:.3},
-  {id:'counter',     label:'Counter-attack',    sub:'Stop-hit to hand or forearm', move:0},
-  {id:'parry',       label:'Parry-riposte',     sub:'Sit, take the blade, riposte', move:-.3},
-  {id:'hold',        label:'Hold distance',     sub:'Make them come to you', move:0},
-  {id:'break',       label:'Break distance',    sub:'Retreat out of reach', move:-1}
-];
-const ATTACKS = new Set(['attack','compound','beat','intoPrep','counterTime']);
-const OPP_MOVE = {prep:.8, direct:.3, compound:.3, blade:.3, line:0, counter:-.1, parry:-.3, draw:-.8, hold:0};
-// M[response][intent] = [P(your light only), P(their light only), P(double)]; remainder = no touch.
-// Intent order: prep, direct, compound, blade, line, counter, parry, draw, hold
-const RAW = {
-  attack:      [[.55,.10,.15],[.25,.25,.40],[.45,.15,.25],[.40,.20,.20],[.08,.60,.20],[.20,.35,.30],[.12,.60,.05],[.15,.45,.15],[.40,.15,.15]],
-  compound:    [[.35,.20,.10],[.10,.55,.20],[.25,.25,.20],[.45,.15,.10],[.10,.55,.20],[.10,.55,.20],[.60,.10,.10],[.25,.30,.15],[.35,.15,.10]],
-  beat:        [[.35,.20,.10],[.20,.35,.20],[.40,.15,.10],[.25,.25,.10],[.60,.08,.10],[.45,.15,.15],[.25,.35,.10],[.30,.25,.10],[.40,.15,.10]],
-  intoPrep:    [[.65,.08,.12],[.20,.30,.35],[.50,.12,.18],[.45,.15,.15],[.05,.60,.20],[.15,.40,.25],[.10,.60,.05],[.10,.50,.15],[.20,.25,.10]],
-  counterTime: [[.20,.30,.10],[.15,.45,.15],[.20,.35,.15],[.25,.30,.10],[.45,.15,.10],[.65,.08,.10],[.30,.30,.10],[.50,.15,.10],[.25,.15,.05]],
-  counter:     [[.30,.15,.15],[.25,.25,.40],[.55,.10,.20],[.15,.50,.15],[.10,.30,.40],[.05,.05,.05],[.10,.50,.10],[.15,.20,.10],[.10,.10,.05]],
-  parry:       [[.05,.15,.02],[.60,.12,.08],[.12,.55,.08],[.15,.45,.10],[.05,.15,.05],[.02,.05,.02],[0,0,0],[.02,.05,.02],[0,.02,0]],
-  hold:        [[.05,.20,.05],[.10,.50,.15],[.08,.50,.10],[.05,.45,.10],[.02,.15,.05],[0,.02,0],[0,0,0],[.02,.05,0],[0,0,0]],
-  break:       [[0,.05,0],[.10,.25,.05],[.08,.20,.05],[.05,.15,.02],[0,.05,0],[0,.02,0],[0,0,0],[0,0,0],[0,0,0]]
-};
-// The principle behind the textbook answer to each intention.
-const PRINCIPLE = {
-  prep:'Hit the preparation itself: attack, or a toe or arm touch on their step, before they finish arriving.',
-  direct:'A committed simple attack is beaten by a parry-riposte or by taking distance; meeting it head-on mostly produces doubles.',
-  compound:'A feint is a gift of time: counter-attack into the feint or take the blade before the final.',
-  blade:'They need your blade to find. Deceive it with a disengage, or attack before the contact lands.',
-  line:'Never attack into a point in line. Remove it first with a beat or bind, or draw it in second intention.',
-  counter:'Counter-time: show a false attack to draw the stop-hit, then parry or time it.',
-  parry:'A parrier is beaten by a compound attack that deceives the parry; a simple attack is what they want.',
-  draw:'Do not take the bait at full commitment. Second intention catches the trap, or hold and make them come back.',
-  hold:'While they wait, the initiative is yours: a blade action or a well-prepared attack.'
-};
-const IIDX = Object.fromEntries(INTENTS.map((x,i)=>[x.id,i]));
-const I = id => INTENTS[IIDX[id]];
-const R = id => RESPONSES.find(r=>r.id===id);
+const F = () => FENCERS.find(f => f.id===S.fid);
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
-const TELLS = {
-  prep:     ['Back foot creeping under the hips between steps','Steps getting shorter and quicker, gathering'],
-  direct:   ['Weight settling onto the front leg, rear knee loading','Point dead still on your torso, rhythm about to break'],
-  compound: ['Point drawing small circles, fishing for your reaction','Half-extensions of the arm with no commitment from the legs'],
-  blade:    ['Blade drifting toward yours, testing for contact','Hand rolling toward supination, ready to take the blade'],
-  line:     ['Arm lengthening, point settling on your chest','Standing taller, blade level, feet suddenly quiet'],
-  counter:  ['Arm loose, point floating toward your wrist','Front foot light, weight sitting back, waiting on you'],
-  parry:    ['Guard closed tight in six, elbow tucked','Short balanced retreats with the blade covering'],
-  draw:     ['Opening the four line on purpose, hand drifting outside','Giving half a step of ground, then stopping dead'],
-  hold:     ['Long, slow steps matched exactly to yours','Resetting the guard, glancing at the clock']
-};
-const BLADES = ['Absence of blade','Light engagement in six','Light engagement in four','Tips crossing, no pressure','Absence of blade'];
-
-const PERSONAS = [
-  {id:'leclerc', name:'Élodie Leclerc', short:'Leclerc', hand:'Left', pr:'she', obj:'her',
-   style:'Patient left-handed counter-attacker who lives on your arm.', honesty:.45, adapt:.5,
-   w:{prep:1, direct:.6, compound:.4, blade:.5, line:.8, counter:3, parry:1.4, draw:2, hold:1.4},
-   notes:['Stop-hits to the wrist off your preparation','Gives ground early to draw a long attack','Rarely starts the action unless trailing late'],
-   flavor:['Her free hand hangs loose behind her','She bounces lightly on the balls of her feet']},
-  {id:'okafor', name:'Daniel Okafor', short:'Okafor', hand:'Right', pr:'he', obj:'him',
-   style:'Explosive right-hander with a long flèche and little patience.', honesty:.65, adapt:.3,
-   w:{prep:2.4, direct:3, compound:1.2, blade:1, line:.3, counter:.5, parry:.5, draw:.3, hold:.3},
-   notes:['Gathers with two short steps before the flèche','Goes first when the score is level','Defends poorly once pinned near his end line'],
-   flavor:['He rolls his shoulders between actions','His breathing is quick and loud behind the mask']},
-  {id:'haraldsen', name:'Ingrid Haraldsen', short:'Haraldsen', hand:'Right', pr:'she', obj:'her',
-   style:'Tall distance controller who rules with point in line and the bind.', honesty:.55, adapt:.6,
-   w:{prep:1.5, direct:.8, compound:.6, blade:2, line:2.5, counter:1, parry:1, draw:.6, hold:2},
-   notes:['Holds a line the moment you step into distance','Binds in six and finishes to the shoulder','Makes you cover the whole piste'],
-   flavor:['Her reach makes the gap look shorter than it is','She barely bends her knees in guard']},
-  {id:'nakamura', name:'Kenji Nakamura', short:'Nakamura', hand:'Left', pr:'he', obj:'him',
-   style:'Second-intention tactician who changes plan after every touch.', honesty:.35, adapt:.9,
-   w:{prep:1.2, direct:1, compound:2, blade:1, line:.6, counter:1.2, parry:1.5, draw:2.5, hold:.8},
-   notes:['Sells false cues on purpose','Draws an attack, then times your arm','Adapts fast to whatever you repeat'],
-   flavor:['He watches your hand, never your eyes','His rhythm keeps changing for no visible reason']},
-  {id:'varga', name:'Zsolt Varga', short:'Varga', hand:'Right', pr:'he', obj:'him',
-   style:'Veteran clock manager who protects a lead with doubles and parries.', honesty:.5, adapt:.7,
-   w:{prep:1, direct:.7, compound:.7, blade:.8, line:1.5, counter:2, parry:2, draw:1, hold:2.5},
-   notes:['Happy to trade doubles once ahead','Strong circular parry in six','Slows everything down when leading'],
-   flavor:['He resets his mask strap before each exchange','He stands very square, almost lazy']}
-];
-const FORMATS = {pool:{target:5, periods:1, len:180, label:'Pool'}, de:{target:15, periods:3, len:180, label:'DE'}};
-const BANDS = {far:{label:'Out of distance', c:4.0}, advlunge:{label:'Advance-lunge distance', c:3.2}, lunge:{label:'Lunge distance', c:2.5}, close:{label:'Close quarters', c:1.6}};
-const bandOf = g => g > 3.6 ? 'far' : g > 2.9 ? 'advlunge' : g > 2.0 ? 'lunge' : 'close';
-const LIKE = [{v:0,l:'Not judged'},{v:1,l:'Unlikely'},{v:2,l:'Possible'},{v:3,l:'Likely'}];
-
-/* ================= State ================= */
-const S = {
-  style:'tree', mode:'bout', format:'pool', personaId:'leclerc', timed:0,
-  me:0, opp:0, clock:180, period:1, xm:-2, xo:2, priority:null, priMin:false, over:false, winner:null,
-  ex:0, oppLast:[], myHist:{}, log:[], drill:null,
-  moment:null, read:null, conf:'med', result:null,
-  plan:null, open:new Set(), sel:'root', zoom:'fit'
-};
-const P = () => PERSONAS.find(p=>p.id===S.personaId);
-const fmtCfg = () => FORMATS[S.format];
-function emptyPlan(){ const b = {}; INTENTS.forEach(x => b[x.id] = {like:0, resp:'', why:'', check:null, coach:'', coachFor:''}); return {root:'', branches:b, review:''}; }
-
-/* ================= Engine ================= */
-function isLate(){ return S.priMin || (S.period === fmtCfg().periods && S.clock <= 30); }
-function doubleValue(me, opp){
-  const t = fmtCfg().target;
-  if(S.priMin) return {v:0, kind:'annul'};
-  if(me===t-1 && opp===t-1) return {v:0, kind:'annul'};
-  if(me===t-1) return {v:1, kind:'win'};
-  if(opp===t-1) return {v:-1, kind:'lose'};
-  const lead = me-opp;
-  const v = clamp(lead*.12, -.45, .45) * (isLate() ? 1.4 : 1) - .03;
-  return {v, kind: v>.08 ? 'good' : v<-.08 ? 'bad' : 'neutral'};
+/* ---------- State ---------- */
+const S = {fid:'clara', plans:{}, ex:0, cur:null, bet:null, log:[]};
+function plan(){
+  if(!S.plans[S.fid]) S.plans[S.fid] = {off:{like:0, resp:'', why:'', checked:false, coach:'', key:''}, def:{like:0, resp:'', why:'', checked:false, coach:'', key:''}};
+  return S.plans[S.fid];
 }
-function noneValue(respId){
-  const lead = S.me - S.opp; if(!lead) return 0;
-  const burn = (respId==='hold'||respId==='break') ? 2 : 1;
-  return Math.sign(lead) * .03 * burn * (isLate() ? 3 : 1);
-}
-function intentDist(m){
-  const p = P(), w = {...p.w}, why = [];
-  const mul = (ids, k, reason) => { ids.forEach(id => w[id] *= k); if(reason && !why.includes(reason)) why.push(reason); };
-  if(m.band==='far'){ mul(['prep'],3,'Out of distance, so the first job is to take ground'); mul(['hold'],1.5); mul(['direct','compound'],.25); mul(['blade','line'],.5); }
-  if(m.band==='advlunge'){ mul(['prep'],1.6,'One step short of lunge distance'); mul(['direct'],.7); }
-  if(m.band==='close'){ mul(['direct','counter','parry'],1.4,'Close quarters favours fast single actions and parries'); mul(['prep','draw'],.3); }
-  const theirLead = S.opp - S.me, late = isLate();
-  if(late && theirLead<0){ mul(['direct','compound','prep'],1.7,`${p.short} is behind with little time, so must go`); mul(['hold'],.1); }
-  if(late && theirLead>0){ mul(['hold'],3,`${p.short} leads late and wants the clock to run`); mul(['counter','parry'],1.5); mul(['direct','compound'],.5); }
-  if(m.oppBack < 2){ mul(['counter','direct'],1.7,`${p.short}'s back foot is near the end line`); mul(['draw','hold'],.3); }
-  if(m.myBack < 2){ mul(['prep','direct'],1.5,'You are near your end line, so pressure pays'); mul(['draw'],.4); }
-  if(S.priMin){
-    if(S.priority==='opp'){ mul(['hold'],3,`${p.short} has priority and only needs the clock`); mul(['counter','parry'],1.5); mul(['direct','compound','prep'],.5); }
-    else { mul(['direct','compound','prep','blade'],1.8,'You have priority, so they must score'); mul(['hold'],.15); }
-  }
-  const dv = doubleValue(S.me, S.opp);
-  if(dv.kind==='bad') mul(['counter','direct'],1.35,'Doubles favour them on this score');
-  if(dv.kind==='lose') mul(['counter','direct','line'],1.6,'Any double wins them the bout');
-  if(dv.kind==='win'){ mul(['parry','hold','draw'],1.4,'A double loses them the bout, so they avoid trading'); mul(['counter','line'],.5); }
-  const tot = Object.values(S.myHist).reduce((a,b)=>a+b,0);
-  if(tot >= 3){
-    let top=null, topN=0; for(const [k,n] of Object.entries(S.myHist)) if(n>topN){top=k;topN=n;}
-    for(const it of INTENTS){
-      let bonus = 0;
-      for(const [r,n] of Object.entries(S.myHist)){ const [me,op] = RAW[r][IIDX[it.id]]; bonus += (n/tot)*Math.max(0, op-me); }
-      w[it.id] *= 1 + p.adapt*2.5*bonus;
-    }
-    if(topN/tot >= .34) why.push(`They have seen you choose ${R(top).label.toLowerCase()} ${topN} of ${tot} times`);
-  }
-  if(S.oppLast.length){ w[S.oppLast[S.oppLast.length-1]] *= .8; }
-  const sum = Object.values(w).reduce((a,b)=>a+b,0);
-  const dist = {}; for(const it of INTENTS) dist[it.id] = w[it.id]/sum;
-  return {dist, why};
-}
-function sampleDist(dist, exclude){
-  const ids = Object.keys(dist).filter(k=>k!==exclude);
-  const tot = ids.reduce((a,k)=>a+dist[k],0); let r = Math.random()*tot;
-  for(const k of ids){ r -= dist[k]; if(r<=0) return k; } return ids[ids.length-1];
-}
-function makeMoment(){
-  if(S.mode==='drill'){
-    const d = S.drill; S.me = d.me; S.opp = d.opp; S.clock = d.clock; S.period = fmtCfg().periods;
-    S.xm = -7 + d.back; S.xo = Math.min(6.6, S.xm + BANDS[d.band].c);
-  }
-  const gap = S.xo - S.xm;
-  const m = {band:bandOf(gap), gap, myBack:S.xm+7, oppBack:7-S.xo, blade:pick(BLADES), ex:++S.ex};
-  const {dist, why} = intentDist(m);
-  m.dist = dist; m.why = why; m.intent = sampleDist(dist);
-  const p = P(), tells = [];
-  if(Math.random() < p.honesty) tells.push({text:pick(TELLS[m.intent]), genuine:true});
-  else { const d = sampleDist(dist, m.intent); tells.push({text:pick(TELLS[d]), genuine:false, decoyOf:d}); }
-  if(tells[0].genuine){
-    if(Math.random() < .45) tells.push({text:TELLS[m.intent].find(t=>t!==tells[0].text), genuine:true});
-    else tells.push({text:pick(p.flavor), genuine:null});
-  } else if(Math.random() < .6) tells.push({text:pick(TELLS[m.intent]), genuine:true});
-  else tells.push({text:pick(p.flavor), genuine:null});
-  m.tells = tells;
-  m.score = {me:S.me, opp:S.opp}; m.clock = S.clock; m.period = S.period;
-  m.dv = doubleValue(S.me, S.opp);
-  m.last = S.oppLast.slice(-2);
-  return m;
-}
-function probs(respId, intentId, m){
-  let [me,op,db] = RAW[respId][IIDX[intentId]];
-  const atk = ATTACKS.has(respId), theirAtk = ['direct','compound','blade'].includes(intentId);
-  if(m.band==='far'){ if(atk){ me*=.35; db*=.4; } if(theirAtk){ op*=.35; db*=.4; } }
-  if(m.band==='advlunge'){ if(atk) me*=.8; if(theirAtk) op*=.8; }
-  if(m.band==='close'){ db*=1.5; if(respId==='parry'){ me*=.7; op*=1.2; } if(intentId==='parry'){ op*=.7; me*=1.15; } }
-  const s = me+op+db; if(s>.95){ me*=.95/s; op*=.95/s; db*=.95/s; }
-  let none = 1-me-op-db;
-  if(respId==='break' && m.myBack < 1.05){ op += none*.85; none *= .15; }
-  return {me, op, db, none};
-}
-function evOf(respId, intentId, m){
-  const pr = probs(respId, intentId, m);
-  return pr.me - pr.op + pr.db*m.dv.v + pr.none*noneValue(respId);
-}
-function evAgainstDist(respId, m){ let e=0; for(const it of INTENTS) e += m.dist[it.id]*evOf(respId, it.id, m); return e; }
-const verdictOf = loss => loss <= .03 ? 'Optimal' : loss <= .12 ? 'Sound' : loss <= .25 ? 'Suboptimal' : 'Mistake';
-function branchEval(intentId, respId, m){
-  const rows = RESPONSES.map(r => ({id:r.id, v:evOf(r.id, intentId, m), pr:probs(r.id, intentId, m)})).sort((a,b)=>b.v-a.v);
-  const mine = rows.find(r=>r.id===respId);
-  const loss = rows[0].v - mine.v;
-  const beats = INTENTS.map(i => ({id:i.id, v:evOf(respId, i.id, m), pr:probs(respId, i.id, m)})).filter(x=>x.v < -.1).sort((a,b)=>a.v-b.v);
-  return {rows, best:rows[0].id, verdict:verdictOf(loss), loss, mineV:mine.v, beats, rank:rows.findIndex(r=>r.id===respId)+1};
+function newExchange(){
+  const f = F(); S.ex++; S.bet = null;
+  const side = Math.random() < f.pDef ? 'def' : 'off';
+  const honest = Math.random() < .75;
+  const shown = honest ? side : (side==='def' ? 'off' : 'def');
+  S.cur = {side, action: f[side], cue: ACT[f[shown]].cue, honest};
 }
 
-function resolve(readId, respId, frozen){
-  const m = S.moment, p = P();
-  const pr = probs(respId, m.intent, m);
-  const r = Math.random();
-  let out = r < pr.me ? 'me' : r < pr.me+pr.op ? 'opp' : r < pr.me+pr.op+pr.db ? 'dbl' : 'none';
-  const evs = RESPONSES.map(x => ({id:x.id, ev:evAgainstDist(x.id, m), act:evOf(x.id, m.intent, m)}));
-  const best = evs.reduce((a,b)=> b.ev>a.ev ? b : a);
-  const bestAct = evs.reduce((a,b)=> b.act>a.act ? b : a);
-  const mine = evs.find(e=>e.id===respId);
-  const loss = best.ev - mine.ev;
-  const grade = frozen ? 'Frozen' : loss <= .03 ? 'Best choice' : loss <= .10 ? 'Sound' : loss <= .2 ? 'Risky' : 'Error';
-  const readOk = readId === m.intent, famOk = !!readId && I(readId).fam === I(m.intent).fam;
-  let call = '', sub = '', callCls = out;
-  const t = fmtCfg().target;
-  if(out==='none'){
-    S.xm += R(respId).move; S.xo -= OPP_MOVE[m.intent];
-    if(S.xm < -7){ out='opp'; callCls='opp'; call='Sortie · touche à droite'; sub='Both feet over your end line. The touch goes to ' + p.short + '.'; }
-    else if(S.xo > 7){ out='me'; callCls='me'; call='Sortie · touche à gauche'; sub=p.short + ' went off the end. Your touch.'; }
-    else if(S.xo - S.xm < 1.2){ const mid=(S.xm+S.xo)/2; S.xm=mid-1.25; S.xo=mid+1.25; call='Halte · corps-à-corps'; sub='Bodies closed. Reset at the same place on the piste.'; callCls='none'; }
-    else { call='Pas de touche'; sub='No light. The action continues from the new distance.'; }
+/* ---------- Rendering ---------- */
+function renderFencers(){
+  $('#fencers').innerHTML = FENCERS.map(f => `<button type="button" class="fc ${f.id===S.fid?'on':''}" data-f="${f.id}" aria-pressed="${f.id===S.fid}">
+    <span class="ty">${f.type}</span><b>${f.name}</b><span class="muted">${f.desc}</span>
+    <dl><dt>Attack</dt><dd>${ACT[f.off].label}</dd><dt>Defence</dt><dd>${ACT[f.def].label}</dd><dt>Prefers</dt><dd>${f.pDef>.5 ? ACT[f.def].label : ACT[f.off].label}</dd></dl></button>`).join('');
+}
+function renderExchange(){
+  const f = F();
+  $('#exNo').textContent = `${f.name} · exchange ${S.ex}`;
+  $('#exBox').innerHTML = `<span class="muted">En garde at lunge distance. What you see:</span><span class="cue"><b>${esc(S.cur.cue)}.</b></span>` +
+    (S.bet ? `<span class="muted">Revealed below.</span>` : `<span class="muted">Bet on the branch you think is coming.</span>`);
+}
+function bestVal(action){ return Math.max(...Object.keys(ANS).map(a => VAL[TABLE[a][action].r])); }
+function branchVerdict(action, resp){
+  const v = VAL[TABLE[resp][action].r], best = bestVal(action);
+  if(v === best) return v > 0 ? 'Best answer' : 'As good as it gets here';
+  if(v === -1) return 'Loses';
+  return 'Works, but not best';
+}
+function bestAnswers(action){ const b = bestVal(action); return Object.keys(ANS).filter(a => VAL[TABLE[a][action].r] === b); }
+function branchHTML(side, row){
+  const f = F(), p = plan()[side], action = f[side], other = side==='off' ? 'def' : 'off';
+  const revealed = !!S.bet, actual = revealed && S.cur.side===side, bet = revealed && S.bet===side;
+  const realP = side==='def' ? f.pDef : 1 - f.pDef;
+  const theyNode = `<div class="node they ${actual?'actual':''} ${bet?'bet':''}" id="n-${side}" style="grid-row:${row};grid-column:2">
+    <div><span class="s">${cap(f.she)} ${side==='off' ? 'attacks' : 'defends'}</span><div class="t">${ACT[action].label}</div><div class="s">${ACT[action].sub}</div></div>
+    <div class="fl">How likely?<div class="seg" data-likeseg="${side}">${[1,2,3].map(v => `<button type="button" data-like="${v}" class="${p.like===v?'on':''}">${LIKE[v]}</button>`).join('')}</div></div>
+    ${revealed ? `<div class="s">Real: ${f.name} does this ${Math.round(realP*100)}% of the time.${actual ? ' <b>◆ This is what happened.</b>' : ''}${bet ? ' <b>▶ You bet on this.</b>' : ''}</div>` : ''}
+    <div class="row"><button class="btn" type="button" data-bet="${side}" ${p.resp && !revealed ? '' : 'disabled'}>Bet on this</button></div>
+  </div>`;
+  const opts = `<option value="">Choose your answer…</option>` + Object.entries(ANS).map(([k,a]) => `<option value="${k}" ${p.resp===k?'selected':''}>${a.label} · ${a.sub}</option>`).join('');
+  const ansNode = `<div class="node ans" id="a-${side}" style="grid-row:${row};grid-column:3">
+    <label class="fl">You answer with<select data-resp="${side}">${opts}</select></label>
+    <label class="fl">Why<textarea data-why="${side}" placeholder="Why does this beat ${esc(ACT[action].label.toLowerCase())}?">${esc(p.why)}</textarea></label>
+    <div class="row"><button class="btn o" type="button" data-check="${side}" ${p.resp?'':'disabled'}>Check</button></div>
+  </div>`;
+  let resNode;
+  if(p.checked && p.resp){
+    const res = TABLE[p.resp][action], mis = TABLE[p.resp][f[other]], verdict = branchVerdict(action, p.resp);
+    const bests = bestAnswers(action).filter(a => a!==p.resp);
+    const showBetter = bests.length && (verdict==='Loses' || verdict==='Works, but not best');
+    resNode = `<div class="node result" id="r-${side}" style="grid-row:${row};grid-column:4">
+      <div class="res">
+        <div><span class="tag ${verdict==='Best answer'?'k':''}">${verdict}</span></div>
+        <div class="big">${RESULT_TXT[res.r]}</div>
+        <div>${esc(res.why)}</div>
+        ${showBetter ? `<div><b>Better:</b> ${bests.map(a => ANS[a].label.toLowerCase()).join(' or ')}.</div>` : ''}
+        <div class="misread"><b>If you misread</b> and ${f.she} ${other==='off'?'attacks':'defends'} with ${ACT[f[other]].label.toLowerCase()}: <b>${RESULT_TXT[mis.r].toLowerCase()}</b>. ${esc(mis.why)}</div>
+      </div>
+      ${p.coach || live() ? `<div class="coach ${p.coach?'':'wait'}" data-coach="${side}">${esc(p.coach || 'Your coach is reading your reasoning…')}</div>` : ''}
+    </div>`;
+  } else {
+    resNode = `<div class="node result empty" id="r-${side}" style="grid-row:${row};grid-column:4"><div>${p.resp ? 'Press Check to see what happens.' : 'Choose an answer first.'}</div></div>`;
   }
-  if(out==='me' && !call){ call='Touche à gauche'; sub='Your light only.'; }
-  if(out==='opp' && !call){ call='Touche à droite'; sub=p.short + ' scores.'; }
-  if(out==='dbl'){
-    if(m.dv.kind==='annul'){ call='Coup double · annulé'; sub = S.priMin ? 'No doubles count in the priority minute.' : `At ${t-1}–${t-1} the last touch must be single.`; }
-    else { call='Coup double'; sub='Both lights inside the 40–50 ms window. One touch each.'; }
-  }
-  if(S.mode==='bout'){
-    if(out==='me') S.me++;
-    if(out==='opp') S.opp++;
-    if(out==='dbl' && m.dv.kind!=='annul'){ S.me++; S.opp++; }
-    if(out!=='none'){ S.xm=-2; S.xo=2; }
-    S.clock -= 2 + Math.random()*4 + ((respId==='hold'||m.intent==='hold') ? 4 : 0) + (respId==='break' ? 2 : 0);
-  }
-  S.myHist[respId] = (S.myHist[respId]||0)+1;
-  S.oppLast.push(m.intent);
-  const res = {ex:m.ex, read:readId, conf:S.conf, resp:respId, out, call, sub, callCls, evs, best:best.id, bestAct:bestAct.id, loss, grade, readOk, famOk, frozen};
-  S.log.push({m, res, plan: S.style==='tree' ? JSON.parse(JSON.stringify(S.plan)) : null});
-  if(S.mode==='bout') checkBoutState(res);
-  return res;
-}
-function checkBoutState(res){
-  const f = fmtCfg(), t = f.target;
-  if(S.me>=t || S.opp>=t){ S.over = true; S.winner = S.me>S.opp ? 'me' : 'opp'; return; }
-  if(S.priMin && S.me!==S.opp){ S.over = true; S.winner = S.me>S.opp?'me':'opp'; return; }
-  if(S.clock <= 0){
-    S.clock = 0;
-    if(S.period < f.periods){ S.period++; S.clock = f.len; S.xm=-2; S.xo=2; res.sub += ` End of period ${S.period-1}. One minute break, then period ${S.period}.`; return; }
-    if(S.me !== S.opp){ S.over = true; S.winner = S.me>S.opp?'me':'opp'; res.sub += ' Time. The higher score wins.'; return; }
-    if(!S.priMin){ S.priMin = true; S.priority = Math.random()<.5 ? 'me' : 'opp'; S.clock = 60; S.xm=-2; S.xo=2;
-      res.sub += ` Time with scores level. Priority drawn: ${S.priority==='me' ? 'you' : P().short}. One minute, sudden death.`; return; }
-    S.over = true; S.winner = S.priority; res.sub += ` The priority minute expires. ${S.priority==='me'?'You win':P().short+' wins'} on priority.`;
-  }
-}
-
-/* ================= Rendering: board & moment ================= */
-function renderBoard(){
-  $('#scMe').textContent = S.me; $('#scOpp').textContent = S.opp;
-  $('#clock').textContent = fmt(S.clock);
-  const f = fmtCfg();
-  $('#per').textContent = S.mode==='drill' ? 'Scenario drill'
-    : S.priMin ? `Priority · ${S.priority==='me' ? 'you' : P().short}`
-    : `${f.label} · to ${f.target}` + (f.periods>1 ? ` · P${S.period}` : '');
-  $('#oppName').textContent = P().name;
-}
-function renderPiste(){
-  const X = v => 20 + (v+7)*600/14;
-  const lines = [-7,-2,0,2,7].map(v => `<line x1="${X(v)}" y1="38" x2="${X(v)}" y2="58" stroke="#000" stroke-width="${v===0?2:1.2}"/>`).join('');
-  const lbls = [-7,-5,-2,0,2,5,7].map(v => `<text x="${X(v)}" y="74" text-anchor="middle" font-size="10" fill="#555" font-family="IBM Plex Mono, monospace">${Math.abs(v)}</text>`).join('');
-  const xm = X(S.xm), xo = X(S.xo), gap = (S.xo-S.xm).toFixed(1);
-  return `<svg viewBox="0 0 640 92" role="img" aria-label="Piste: ${gap} metres between fencers">
-    <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#000" stroke-width="1"/></pattern></defs>
-    <rect x="${X(-7)}" y="40" width="${X(7)-X(-7)}" height="16" fill="#fff" stroke="#000" stroke-width="1.2"/>
-    <rect x="${X(-7)}" y="40" width="${X(-5)-X(-7)}" height="16" fill="url(#hatch)" opacity=".45"/>
-    <rect x="${X(5)}" y="40" width="${X(7)-X(5)}" height="16" fill="url(#hatch)" opacity=".45"/>
-    ${lines}${lbls}
-    <path d="M${xm-8},18 L${xm+8},26 L${xm-8},34 Z" fill="#000"/>
-    <text x="${xm}" y="12" text-anchor="middle" font-size="11" font-weight="600" fill="#000" font-family="IBM Plex Sans, sans-serif">You</text>
-    <path d="M${xo+8},18 L${xo-8},26 L${xo+8},34 Z" fill="#fff" stroke="#000" stroke-width="1.5"/>
-    <text x="${xo}" y="12" text-anchor="middle" font-size="11" font-weight="600" fill="#000" font-family="IBM Plex Sans, sans-serif">${esc(P().short)}</text>
-    <line x1="${xm+10}" y1="26" x2="${xo-10}" y2="26" stroke="#000" stroke-dasharray="3 3"/>
-    <text x="${(xm+xo)/2}" y="89" text-anchor="middle" font-size="11" fill="#000" font-family="IBM Plex Mono, monospace">${gap} m</text>
-  </svg>`;
-}
-const DVS = {win:'a double wins you the bout', lose:'a double loses you the bout', annul:'a double is annulled', good:'doubles favour you', bad:'doubles hurt you', neutral:'doubles are neutral'};
-const scoreLine = m => { const l = m.score.me - m.score.opp; return l>0 ? `You lead by ${l}` : l<0 ? `You trail by ${-l}` : 'Level'; };
-function renderMoment(){
-  const m = S.moment, p = P();
-  $('#exNo').textContent = `Exchange ${m.ex}`;
-  $('#piste').innerHTML = renderPiste();
-  const strongDv = ['win','lose','annul'].includes(m.dv.kind);
-  $('#chips').innerHTML = [
-    `<span class="chip"><b>${BANDS[m.band].label}</b></span>`,
-    `<span class="chip ${m.myBack<2?'k':''}">Your back foot <b>${m.myBack.toFixed(1)} m</b> from the end</span>`,
-    `<span class="chip">Theirs <b>${m.oppBack.toFixed(1)} m</b></span>`,
-    `<span class="chip">${scoreLine(m)} · <b>${fmt(m.clock)}</b>${S.priMin?' · priority minute':''}</span>`,
-    `<span class="chip">${m.blade}</span>`,
-    `<span class="chip ${strongDv?'k':''}">${DVS[m.dv.kind].replace(/^./, c=>c.toUpperCase())}</span>`,
-    m.last.length ? `<span class="chip">Their last: <b>${m.last.map(x=>I(x).label.toLowerCase()).join(', then ')}</b></span>` : ''
-  ].join('');
-  const tot = Object.values(S.myHist).reduce((a,b)=>a+b,0);
-  let adapt = '';
-  if(tot>=3){ let top=null,n=0; for(const [k,v] of Object.entries(S.myHist)) if(v>n){top=k;n=v;} if(n/tot>=.34) adapt = `${p.short} has seen you choose ${R(top).label.toLowerCase()} ${n} of ${tot} times.`; }
-  $('#oppCard').innerHTML = `<b>${esc(p.name)}</b> · ${p.hand}-handed · <span class="sty">${esc(p.style)} ${esc(p.notes.join('. '))}.</span>${adapt?`<div class="adapt">${esc(adapt)}</div>`:''}`;
-  $('#cues').innerHTML = '<div class="lbl">Cues you can see</div>' + m.tells.map(t=>`<span>${esc(t.text)}</span>`).join('');
-}
-function templateNarration(m){
-  const p = P(), a = p.pr==='she' ? 'She' : 'He';
-  const b = {far:`${p.short} is well out of distance`, advlunge:`${p.short} sits one step outside your lunge`, lunge:`${p.short} is at lunge distance`, close:`${p.short} is close enough to touch`}[m.band];
-  return `${b}. ${m.tells[0].text}. ${m.tells[1] ? m.tells[1].text + '.' : ''} ${a} is ${m.dv.kind==='win' ? 'wary of trading touches' : m.dv.kind==='lose' ? 'happy to trade touches' : 'reading you as closely as you read ' + p.obj}.`;
-}
-
-/* ================= Rendering: decision tree (left-to-right process chart) ================= */
-const revealed = () => !!S.result;
-const COLW = [200, 214, 214, 204], CGAP = 60, VG = 12, LH = 17, PADY = 7, HEADH = 34;
-const COLX = (() => { const a = [0]; for(let i=1;i<COLW.length;i++) a[i] = a[i-1] + COLW[i-1] + CGAP; return a; })();
-const COLS = ['Situation', 'They might…', 'You answer', 'What beats it'];
-const lightsArr = pr => `[${Math.round(pr.me*100)}, ${Math.round(pr.db*100)}, ${Math.round(pr.op*100)}, ${Math.round(pr.none*100)}]`;
-function buildTree(){
-  const m = S.moment;
-  return {id:'root', kind:'root', lines:[
-    {t:'Situation', b:true}, {t:BANDS[m.band].label}, {t:`gap ${m.gap.toFixed(1)} m`, d:true},
-    {t:`score ${m.score.me}–${m.score.opp} · ${fmt(m.clock)}`, d:true}, {t:`back foot ${m.myBack.toFixed(1)} m from end`, d:true},
-    {t:DVS[m.dv.kind], d:true}
-  ], children: INTENTS.map(intentNode)};
-}
-function intentNode(it){
-  const b = S.plan.branches[it.id], m = S.moment, open = S.open.has(it.id);
-  const lines = [{t:it.label, b:true, g: open ? '−' : '+'},
-    {t:`estimate: ${b.like ? LIKE[b.like].l.toLowerCase() : '?'}`, d:true},
-    {t:`answer: ${b.resp ? R(b.resp).label.toLowerCase() : '?'}`, d:true}];
-  if(b.check) lines.push({t:`verdict: ${b.check.verdict.toLowerCase()}`});
-  if(revealed()){
-    lines.push({t:`actual likelihood: ${pct(m.dist[it.id])}`});
-    if(it.id===m.intent) lines.push({t:'◆ what they did', b:true});
-    if(S.result.read===it.id) lines.push({t:'▶ you played this', b:true});
-  }
-  return {id:it.id, kind:'intent', lines, actual: revealed() && it.id===m.intent, played: revealed() && S.result.read===it.id,
-    children: open ? answerKids(it) : []};
-}
-function answerKids(it){
-  const b = S.plan.branches[it.id], m = S.moment;
-  if(!b.resp) return [{id:it.id+':none', kind:'none', parent:it.id, lines:[{t:'No answer yet', b:true},{t:'plan it in the panel below', d:true}]}];
-  const known = !!b.check || revealed();
-  const ev = branchEval(it.id, b.resp, m), mine = ev.rows.find(r=>r.id===b.resp);
-  const ans = {id:it.id+':ans', kind:'ans', parent:it.id, lines:[{t:`You: ${R(b.resp).label.toLowerCase()}`, b:true}], children:[]};
-  if(known){
-    ans.lines.push({t:`rank ${ev.rank} of 9 · value ${sgn(mine.v)}`, d:true},{t:`lights ${lightsArr(mine.pr)}`, d:true});
-    ans.children = ev.beats.filter(x=>x.id!==it.id).slice(0,2).map(x => ({id:it.id+':beat:'+x.id, kind:'beat', parent:it.id,
-      lines:[{t:I(x.id).label, b:true},{t:`your value ${sgn(x.v)}`, d:true},{t:`lights ${lightsArr(x.pr)}`, d:true}]}));
-    if(!ans.children.length) ans.children = [{id:it.id+':safe', kind:'beat', parent:it.id, lines:[{t:'Nothing punishes it', b:true},{t:'badly if you misread', d:true}]}];
-  } else ans.lines.push({t:'not checked yet', d:true});
-  const kids = [ans];
-  if(known && ev.best!==b.resp){
-    const br = ev.rows[0];
-    kids.push({id:it.id+':best', kind:'best', parent:it.id,
-      lines:[{t:`Best: ${R(br.id).label.toLowerCase()}`, b:true},{t:`rank 1 of 9 · value ${sgn(br.v)}`, d:true},{t:`lights ${lightsArr(br.pr)}`, d:true}]});
-  }
-  return kids;
-}
-function layoutTree(root){
-  (function measure(n, d){
-    n.d = d; n.h = PADY*2 + n.lines.length*LH + (n.kind==='best' ? 2 : 0); n.children = n.children || [];
-    n.children.forEach(k => measure(k, d+1));
-    const ch = n.children.reduce((a,k)=>a+k.sh,0) + VG*Math.max(0, n.children.length-1);
-    n.sh = Math.max(n.h, ch);
-  })(root, 0);
-  (function place(n, y){
-    n.y = y; n.x = COLX[n.d];
-    let cy = y; n.children.forEach(k => { place(k, cy); cy += k.sh + VG; });
-  })(root, HEADH);
-  return {W: COLX[COLX.length-1] + COLW[COLW.length-1] + 6, H: HEADH + root.sh + 8};
+  return theyNode + ansNode + resNode;
 }
 function renderTree(){
-  if(!S.moment) return;
-  $('#treeIntro').innerHTML = revealed()
-    ? 'Revealed. Each branch now shows how likely it really was. ◆ marks what they did; ▶ and a dashed outline mark the branch you played. Keep changing answers and checking them to study the position.'
-    : 'Read left to right. Click an action to expand it and plan it in the panel below: how likely it is, your answer, your reasoning. <b>Check with coach</b> grades your answer and adds what beats it and the best answer. <b>Play this branch</b> commits your read.';
-  const root = buildTree(), {W, H} = layoutTree(root);
-  const nodes = [], edges = [];
-  (function walk(n){ nodes.push(n); n.children.forEach(k => { edges.push([n,k]); walk(k); }); })(root);
-  const ANCH = 16;
-  const svg = edges.map(([p,k]) => {
-    const x1 = p.x + COLW[p.d], y1 = p.y + ANCH, x2 = k.x - 2, y2 = k.y + ANCH, bx = x1 + CGAP/2;
-    return `<path d="M${x1},${y1} H${bx} V${y2} H${x2}" fill="none" stroke="#000" stroke-width="1.2" ${k.kind==='beat'?'stroke-dasharray="4 3"':''} marker-end="url(#tarr)"/>`;
-  }).join('');
-  const heads = COLS.map((c,i) => `<div class="colhd" style="left:${COLX[i]}px;width:${COLW[i]}px">${c}</div>`).join('');
-  const boxes = nodes.map(n => `<button type="button" class="tn ${n.kind} ${S.sel===n.id?'sel':''} ${n.actual?'actual':''} ${n.played?'played':''}" data-node="${n.id}" data-kind="${n.kind}" data-parent="${n.parent||''}" style="left:${n.x}px;top:${n.y}px;width:${COLW[n.d]}px;height:${n.h}px" aria-label="${esc(n.lines.map(l=>l.t).join(', '))}${n.kind==='intent' ? (S.open.has(n.id)?', expanded':', collapsed') : ''}">${n.lines.map(l => l.b ? `<span class="b"><span>${esc(l.t)}</span>${l.g ? `<i aria-hidden="true">${l.g}</i>` : ''}</span>` : `<span class="${l.d?'d':''}">${esc(l.t)}</span>`).join('')}</button>`).join('');
-  $('#tree').innerHTML = `<div class="tz" style="width:${W}px;height:${H}px">
-    <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><defs><marker id="tarr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#000"/></marker></defs>${svg}</svg>
-    ${heads}${boxes}</div>`;
-  renderEditor();
-  $('#reviewOut').textContent = S.plan.review || '';
-}
-function renderEditor(){
-  const ed = $('#treeEd'), m = S.moment;
-  if(S.sel==='root' || !S.sel){
-    const press = revealed()
-      ? `<div><div class="lbl">What was pushing ${esc(P().short)}</div><ul class="press">${m.why.map(w=>`<li>${esc(w)}</li>`).join('') || '<li>No strong situational pull. Style alone.</li>'}</ul></div>` : '';
-    ed.innerHTML = `<div class="edh"><b>Situation</b><small>${BANDS[m.band].label} · ${scoreLine(m)} · ${fmt(m.clock)} · your back foot ${m.myBack.toFixed(1)} m from the end</small></div>
-      <label class="fld">Your read of the moment
-        <textarea data-root="1" placeholder="What matters most here? What do they want? What must you not allow? What have they shown you so far?">${esc(S.plan.root)}</textarea></label>
-      ${press}
-      <p class="note" style="margin:0">Click an action in the tree to plan your answer to it.</p>`;
-    return;
-  }
-  const id = S.sel, it = I(id), b = S.plan.branches[id];
-  const opts = `<option value="">Choose your answer…</option>` + RESPONSES.map(r=>`<option value="${r.id}" ${b.resp===r.id?'selected':''}>${r.label} · ${r.sub}</option>`).join('');
-  const likeSeg = LIKE.slice(1).map(x=>`<button type="button" data-like="${x.v}" class="${b.like===x.v?'on':''}">${x.l}</button>`).join('');
-  let fb = '';
-  if(b.check){
-    const c = b.check;
-    fb = `<div class="fb"><b>${c.verdict}.</b> ${esc(R(b.resp).label)} ranks ${c.rank} of 9 against ${esc(it.label.toLowerCase())} here.${c.best!==b.resp ? ` Best: ${esc(R(c.best).label)}.` : ''}
-      <div class="ex ${b.coach ? '' : 'wait'}" data-coach="${id}">${esc(b.coach || 'Your coach is reading your reasoning…')}</div></div>`;
-  }
-  const principle = (b.check || revealed()) ? `<p class="note" style="margin:0"><b>Principle.</b> ${esc(PRINCIPLE[id])}</p>` : '';
-  ed.innerHTML = `<div class="edh"><b>If ${esc(P().short)} goes for ${esc(it.label.toLowerCase())}</b><small>${esc(it.sub)}${revealed() ? ` · actual likelihood ${pct(m.dist[id])}${id===m.intent ? ' · this is what they did' : ''}` : ''}</small></div>
-    <div class="fld">How likely is this right now?<div class="seg" data-likeseg="${id}">${likeSeg}</div></div>
-    <label class="fld">Your answer<select class="sel" data-resp="${id}">${opts}</select></label>
-    <label class="fld">Why<textarea data-why="${id}" placeholder="Distance, timing, what you have seen from ${esc(P().obj)}, what the score and clock demand…">${esc(b.why)}</textarea></label>
-    <div class="row">
-      <button class="btn o" type="button" data-check="${id}" ${b.resp?'':'disabled'}>Check with coach</button>
-      <button class="btn" type="button" data-play="${id}" ${b.resp && !revealed() ? '' : 'disabled'}>Play this branch</button>
-      <button class="btn o" type="button" data-sel="root">Back to situation</button>
+  const f = F();
+  $('#tree').innerHTML = `
+    <div class="colhd" style="grid-row:1;grid-column:1">Opponent</div>
+    <div class="colhd" style="grid-row:1;grid-column:2">They do</div>
+    <div class="colhd" style="grid-row:1;grid-column:3">You answer</div>
+    <div class="colhd" style="grid-row:1;grid-column:4">Result</div>
+    <div class="node opp" id="n-root" style="grid-column:1">
+      <div><div class="s">${f.type}</div><div class="t">${f.name}</div></div>
+      <div class="s">Attack: ${ACT[f.off].label.toLowerCase()}<br>Defence: ${ACT[f.def].label.toLowerCase()}</div>
     </div>
-    ${fb}${principle}`;
+    ${branchHTML('off', 2)}${branchHTML('def', 3)}
+    <svg id="wires" aria-hidden="true"></svg>`;
+  drawWires();
 }
-function refreshBranch(){ renderTree(); }
+function drawWires(){
+  const tree = $('#tree'), svg = $('#wires'); if(!svg) return;
+  const W = tree.scrollWidth, H = tree.scrollHeight;
+  svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const box = id => { const e = document.getElementById(id); return e ? {x:e.offsetLeft, y:e.offsetTop, w:e.offsetWidth, h:e.offsetHeight} : null; };
+  const wire = (a, b, dashed) => {
+    if(!a || !b) return '';
+    const x1 = a.x + a.w, y1 = a.y + Math.min(a.h/2, 40), x2 = b.x - 2, y2 = b.y + Math.min(b.h/2, 40), bx = x1 + 28;
+    return `<path d="M${x1},${y1} H${bx} V${y2} H${x2}" fill="none" stroke="#000" stroke-width="1.3" ${dashed?'stroke-dasharray="4 3"':''} marker-end="url(#ar)"/>`;
+  };
+  const root = box('n-root');
+  svg.innerHTML = `<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#000"/></marker></defs>` +
+    ['off','def'].map(s => wire(root, box('n-'+s)) + wire(box('n-'+s), box('a-'+s)) + wire(box('a-'+s), box('r-'+s), !plan()[s].checked)).join('');
+}
+new ResizeObserver(() => drawWires()).observe($('#tree'));
 
-/* ================= Rendering: result & stats ================= */
-function renderResult(res){
-  const m = S.moment, p = P();
-  $('#result').hidden = false;
-  $('#resEx').textContent = `Exchange ${res.ex}`;
-  $('#call').textContent = res.call;
-  $('#callSub').textContent = `${p.short} was going for ${I(m.intent).label.toLowerCase()}. You read ${res.read ? I(res.read).label.toLowerCase() : 'nothing'} and chose ${R(res.resp).label.toLowerCase()}. ${res.sub}`;
-  const strong = ['Error','Risky'].includes(res.grade);
-  $('#verdicts').innerHTML = [
-    `<span class="chip ${res.readOk?'k':''}">Read: <b>${res.readOk?'exact':res.famOk?'right family':'wrong'}</b></span>`,
-    `<span class="chip ${strong?'':'k'}">Decision: <b>${res.grade}</b></span>`,
-    `<span class="chip">Best vs. what was likely: <b>${R(res.best).label}</b></span>`,
-    `<span class="chip">Best vs. what they did: <b>${R(res.bestAct).label}</b></span>`
-  ].join('');
-  $('#oppWho').textContent = p.name;
+function renderReveal(){
+  const r = $('#reveal');
+  if(!S.bet){ r.hidden = true; return; }
+  const f = F(), p = plan()[S.bet], res = TABLE[p.resp][S.cur.action], right = S.bet===S.cur.side;
+  r.hidden = false;
+  $('#rCall').textContent = RESULT_TXT[res.r];
+  $('#rText').textContent = `${f.name} went for ${ACT[S.cur.action].label.toLowerCase()}. You bet on the ${S.bet==='off'?'attack':'defence'} branch and answered with ${ANS[p.resp].label.toLowerCase()}. Your read was ${right ? 'right' : 'wrong'}.`;
+  $('#rWhy').textContent = res.why + (S.cur.honest ? ' The cue was honest this time.' : ' The cue was misleading this time: it showed the other action.');
 }
-function renderStats(){
-  const L = S.log, n = L.length;
-  $('#stN').textContent = `${n} exchange${n===1?'':'s'}`;
-  if(!n){ ['#stRead','#stFam','#stDec'].forEach(s=>$(s).textContent='–'); $('#calib').textContent='Read accuracy, decision quality and habits build up here.'; $('#treeStat').textContent=''; $('#habits').innerHTML=''; return; }
-  const ok = L.filter(x=>x.res.readOk).length, fam = L.filter(x=>x.res.famOk).length;
-  const good = L.filter(x=>['Best choice','Sound'].includes(x.res.grade)).length;
-  $('#stRead').textContent = pct(ok/n); $('#stFam').textContent = pct(fam/n); $('#stDec').textContent = pct(good/n);
-  const byC = {low:[0,0], med:[0,0], high:[0,0]};
-  L.forEach(x => { if(byC[x.res.conf]){ byC[x.res.conf][1]++; if(x.res.readOk) byC[x.res.conf][0]++; } });
-  const part = (k,lbl) => byC[k][1] ? `${lbl} ${pct(byC[k][0]/byC[k][1])} (${byC[k][1]})` : null;
-  $('#calib').textContent = 'Accuracy by your likelihood mark: ' + ([part('high','likely'),part('med','possible'),part('low','unlikely or unmarked')].filter(Boolean).join(' · ') || '–');
-  let checked = 0, opt = 0;
-  L.forEach(x => { if(x.plan) Object.values(x.plan.branches).forEach(b => { if(b.check){ checked++; if(['Optimal','Sound'].includes(b.check.verdict)) opt++; } }); });
-  $('#treeStat').textContent = checked ? `Branches checked: ${checked}. Optimal or sound: ${pct(opt/checked)}.` : '';
-  const tot = Object.values(S.myHist).reduce((a,b)=>a+b,0);
-  const rows = Object.entries(S.myHist).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `<div class="trow"><span>${R(k).label}</span><div class="bar"><i style="width:${v/tot*100}%"></i></div><span class="num">${v}</span></div>`).join('');
-  $('#habits').innerHTML = `<div class="lbl" style="margin-top:6px">Your habits this session</div>${rows}`;
+function renderLog(){
+  const n = S.log.length; if(!n){ $('#log').textContent = ''; return; }
+  const right = S.log.filter(x => x.right).length, c = {you:0, them:0, double:0, none:0};
+  S.log.forEach(x => c[x.r]++);
+  $('#log').textContent = `Practice so far: ${right} of ${n} reads right. You scored ${c.you}, they scored ${c.them}, doubles ${c.double}, no touch ${c.none}.`;
 }
+function renderAll(){ renderFencers(); renderExchange(); renderTree(); renderReveal(); renderLog(); }
 
-/* ================= Claude role-play ================= */
-let sampleFn = null, liveAvail = 'checking', liveCtl = null;
-function setLive(){
-  const on = liveOn();
-  $('#live').classList.toggle('on', on);
-  $('#liveText').textContent = liveAvail==='checking' ? 'Checking live role-play…'
-    : liveAvail==='no' ? 'Live role-play unavailable here · built-in text'
-    : on ? 'Live role-play on' : 'Live role-play off · built-in text';
-  $('#deepBtn').hidden = !on; $('#debriefBtn').hidden = !on;
-}
-function liveOn(){ return !!sampleFn && liveAvail==='yes' && $('#liveToggle').checked; }
+/* ---------- Coach (Claude) ---------- */
+let sampleFn = null, avail = 'checking';
 (async () => {
   try{ sampleFn = (window.claude && window.claude.use) ? await window.claude.use('sample') : null; }catch(e){ sampleFn = null; }
-  liveAvail = sampleFn ? 'yes' : 'no'; setLive();
+  avail = sampleFn ? 'yes' : 'no'; setLive();
 })();
-function liveFail(e){
-  const code = e && e.code;
-  if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(code)){ liveAvail='no'; setLive(); }
-  return code;
+function live(){ return avail==='yes' && $('#liveToggle').checked; }
+function setLive(){
+  $('#liveText').textContent = avail==='no' ? 'Coach explanations unavailable here (built-in results only)' : 'Coach explanations by Claude';
+  $('#liveToggle').disabled = avail==='no';
 }
-function situationText(m){
-  const p = P();
-  return [
-    `Score: you ${m.score.me}, ${p.short} ${m.score.opp} (bout to ${fmtCfg().target}${S.mode==='drill'?', scenario drill':''}). Clock ${fmt(m.clock)}${S.priMin?`, priority minute, priority to ${S.priority==='me'?'you':p.short}`:''}.`,
-    `Distance: ${BANDS[m.band].label.toLowerCase()} (${m.gap.toFixed(1)} m between fencers). Your back foot is ${m.myBack.toFixed(1)} m from your end line, theirs ${m.oppBack.toFixed(1)} m.`,
-    `Blade: ${m.blade.toLowerCase()}. Their last actions: ${m.last.length ? m.last.map(x=>I(x).label.toLowerCase()).join(', then ') : 'none yet'}.`,
-    `Double-touch situation: ${({win:'a double wins the bout for you',lose:'a double loses the bout for you',annul:'a double would be annulled',good:'doubles favour you',bad:'doubles favour them',neutral:'doubles are neutral'})[m.dv.kind]}.`,
-    `Opponent: ${p.name}, ${p.hand.toLowerCase()}-handed. ${p.style}`
-  ].join('\n');
-}
-async function narrate(m){
-  const box = $('#narr');
-  box.textContent = templateNarration(m); box.classList.remove('wait');
-  if(!liveOn()) return;
-  if(liveCtl) liveCtl.abort();
-  const ctl = liveCtl = new AbortController();
-  box.classList.add('wait');
-  const prompt = `You narrate one frozen instant in an elite épée training simulator. The reader is a national-team épéeist fencing from the left end of the piste. Write 2–3 sentences in second person, present tense, describing what they perceive across the piste right before they decide. Weave in these visible cues faithfully, giving them no more weight than they carry (some cues may be deliberate decoys; never say which, never state or hint at what the opponent will actually do):\n- ${m.tells.map(t=>t.text).join('\n- ')}\n\nSituation:\n${situationText(m)}\n\nPlain prose only, no headings or lists, under 70 words. Use correct épée vocabulary.`;
+async function check(side){
+  const f = F(), p = plan()[side], action = f[side], other = side==='off' ? 'def' : 'off';
+  p.checked = true; p.coach = '';
+  const key = p.resp + '|' + p.why + '|' + Date.now(); p.key = key;
+  renderTree();
+  if(!live()) return;
+  const res = TABLE[p.resp][action], mis = TABLE[p.resp][f[other]];
+  const prompt = `You are an épée coach teaching an elite fencer to reason about single actions, one at a time. Keep it simple and concrete. No bout context: just en garde at lunge distance.
+Opponent: ${f.name}, a ${f.type.toLowerCase()}. Attack: ${ACT[f.off].label.toLowerCase()}. Defence: ${ACT[f.def].label.toLowerCase()}. Prefers ${f.pDef>.5 ? 'to defend' : 'to attack'}.
+Branch: ${f.name} ${side==='off'?'attacks':'defends'} with ${ACT[action].label.toLowerCase()} (${ACT[action].sub.toLowerCase()}).
+Fencer's answer: ${ANS[p.resp].label.toLowerCase()} (${ANS[p.resp].sub.toLowerCase()}).
+Fencer's reasoning: ${p.why.trim() ? '"' + p.why.trim().slice(0,800) + '"' : '(none written)'}
+Result (fixed by the simulator, do not contradict): ${RESULT_TXT[res.r]}. ${res.why} Verdict: ${branchVerdict(action, p.resp)}. Best answers to this action: ${bestAnswers(action).map(a=>ANS[a].label.toLowerCase()).join(', ')}.
+If the fencer misread and ${f.name} instead ${other==='off'?'attacks':'defends'} with ${ACT[f[other]].label.toLowerCase()}, the same answer gives: ${RESULT_TXT[mis.r].toLowerCase()}. ${mis.why}
+In 2–4 short sentences (under 80 words), plain prose: say whether their reasoning is right, explain the timing or blade logic behind the result, and if a better answer exists say which and why. If their answer also covers the other branch well, point that out.`;
   try{
-    await sampleFn(prompt, {modelTier:'quick', signal:ctl.signal, cache:false, onText:({text}) => { if(ctl===liveCtl){ box.classList.remove('wait'); box.textContent = text; } }});
-  }catch(e){ liveFail(e); if(ctl===liveCtl){ box.classList.remove('wait'); if(e.code!=='cancelled' && !e.text) box.textContent = templateNarration(m); } }
-}
-function fallbackBranchCoach(id, b, ev){
-  const it = I(id), mine = R(b.resp);
-  let s = '';
-  if(ev.verdict==='Optimal') s += `Right answer. ${mine.label} is the strongest reply to ${it.label.toLowerCase()} from this distance and score. `;
-  else s += `${mine.label} is ${({Sound:'sound but not best',Suboptimal:'suboptimal',Mistake:'a mistake'})[ev.verdict]} against ${it.label.toLowerCase()} here; ${R(ev.best).label.toLowerCase()} is better. `;
-  s += PRINCIPLE[id] + ' ';
-  const others = ev.beats.filter(x=>x.id!==id).slice(0,3).map(x=>I(x.id).label.toLowerCase());
-  if(others.length) s += `If you are wrong about the branch, ${mine.label.toLowerCase()} is punished by ${others.join(', ')}.`;
-  else s += `It is also safe if you misread the branch: nothing else they do punishes it badly.`;
-  if(!b.why.trim()) s += ' Write down your reasoning next time so it can be checked.';
-  return s.trim();
-}
-async function checkBranch(id){
-  const b = S.plan.branches[id], m = S.moment;
-  if(!b.resp) return;
-  const ev = branchEval(id, b.resp, m);
-  b.check = {verdict:ev.verdict, rank:ev.rank, best:ev.best};
-  const key = `${b.resp}|${b.why}|${m.band}|${m.score.me}-${m.score.opp}|${m.myBack.toFixed(1)}`;
-  b.coachFor = key;
-  b.coach = liveOn() ? '' : fallbackBranchCoach(id, b, ev);
-  S.open.add(id);
-  refreshBranch(id); renderStats();
-  if(!liveOn()) return;
-  const it = I(id), p = P();
-  const ranked = ev.rows.slice(0,4).map((r,i)=>`${i+1}. ${R(r.id).label}`).join('; ');
-  const beats = ev.beats.map(x=>I(x.id).label.toLowerCase()).join(', ') || 'nothing badly';
-  const prompt = `You are a national-team épée coach checking one branch of an elite fencer's decision tree, before the action happens. Speak to the fencer directly.
-Situation:
-${situationText(m)}
-Branch: "If ${p.short} goes for ${it.label.toLowerCase()} (${it.sub.toLowerCase()})…"
-The fencer's answer: ${R(b.resp).label} (${R(b.resp).sub.toLowerCase()}).
-The fencer's reasoning: ${b.why.trim() ? '"' + b.why.trim().slice(0,1200) + '"' : '(none written)'}
-Their likelihood estimate for this branch: ${LIKE[b.like].l.toLowerCase()}.
-Engine verdict for this branch (authoritative; do not contradict it): ${ev.verdict}. Ranking of answers against this action here: ${ranked}. Opponent actions that punish the fencer's answer: ${beats}.
-Principle: ${PRINCIPLE[id]}
-Write 3–5 sentences, at most 120 words, plain prose: say whether the answer is optimal against this branch and why, in this exact distance, score and clock; judge their reasoning (what is right, what is missing or wrong); and name what counters their answer and what to do instead if it is not optimal. Do not reveal or guess what the opponent will actually do. No percentages.`;
-  try{
-    await sampleFn(prompt, {cache:false, onText:({text}) => { if(b.coachFor===key){ b.coach = text; const el = document.querySelector(`[data-coach="${id}"]`); if(el){ el.textContent = text; el.classList.remove('wait'); } } }});
+    await sampleFn(prompt, {cache:false, onText:({text}) => { if(p.key===key){ p.coach = text; const el = document.querySelector(`[data-coach="${side}"]`); if(el){ el.textContent = text; el.classList.remove('wait'); drawWires(); } } }});
   }catch(e){
-    liveFail(e);
-    if(b.coachFor===key){ b.coach = e.text || fallbackBranchCoach(id, b, ev); refreshBranch(id); }
+    if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(e && e.code)){ avail = 'no'; setLive(); }
+    if(p.key===key){ p.coach = e.text || ''; renderTree(); }
   }
 }
-async function reviewTree(){
-  const m = S.moment, p = P(), out = $('#reviewOut'), btn = $('#reviewBtn');
-  const filled = INTENTS.filter(x => S.plan.branches[x.id].resp || S.plan.branches[x.id].like);
-  if(!filled.length && !S.plan.root.trim()){ out.textContent = 'Fill in at least one branch or your read of the moment first.'; return; }
-  const lines = INTENTS.map(x => {
-    const b = S.plan.branches[x.id];
-    if(!b.resp && !b.like) return `- ${x.label}: not considered`;
-    const ev = b.resp ? branchEval(x.id, b.resp, m) : null;
-    return `- ${x.label}: likelihood ${LIKE[b.like].l.toLowerCase()}; answer ${b.resp ? R(b.resp).label : 'none'}${ev ? ` (engine: ${ev.verdict}, best ${R(ev.best).label})` : ''}; reasoning: ${b.why.trim() ? '"' + b.why.trim().slice(0,400) + '"' : 'none'}`;
-  }).join('\n');
-  const after = revealed();
-  const fallback = () => {
-    const bad = INTENTS.filter(x => { const b = S.plan.branches[x.id]; return b.resp && ['Suboptimal','Mistake'].includes(branchEval(x.id,b.resp,m).verdict); });
-    const unconsidered = INTENTS.filter(x => !S.plan.branches[x.id].resp);
-    let s = `You planned ${INTENTS.length - unconsidered.length} of 9 branches.`;
-    if(bad.length) s += ` Weak answers: ${bad.map(x=>`${x.label.toLowerCase()} (better: ${R(branchEval(x.id,S.plan.branches[x.id].resp,m).best).label.toLowerCase()})`).join('; ')}.`;
-    if(after){ const top = INTENTS.slice().sort((a,b)=>m.dist[b.id]-m.dist[a.id]).slice(0,3); s += ` The three most likely actions were ${top.map(x=>`${x.label.toLowerCase()} (${pct(m.dist[x.id])}, you said ${LIKE[S.plan.branches[x.id].like].l.toLowerCase()})`).join(', ')}.`; }
-    return s;
-  };
-  if(!liveOn()){ S.plan.review = fallback(); out.textContent = S.plan.review; return; }
-  btn.disabled = true; out.textContent = 'Your coach is reading your tree…';
-  const prompt = `You are a national-team épée coach reviewing an elite fencer's whole decision tree for one frozen moment${after ? ', after the action was revealed' : ', before the action (do not reveal or guess what the opponent will do and give no probabilities)'}.
-Situation:
-${situationText(m)}
-Pressures a coach can see in this situation: ${m.why.join('; ') || 'nothing beyond the opponent’s style'}.
-Fencer's read of the moment: ${S.plan.root.trim() ? '"' + S.plan.root.trim().slice(0,1200) + '"' : '(none written)'}
-Their tree:
-${lines}
-${after ? `What actually happened: ${p.short} went for ${I(m.intent).label.toLowerCase()}. True likelihoods: ${INTENTS.slice().sort((a,b)=>m.dist[b.id]-m.dist[a.id]).map(x=>`${x.label.toLowerCase()} ${pct(m.dist[x.id])}`).join(', ')}. The fencer played the ${I(S.result.read||'hold').label.toLowerCase()} branch with ${R(S.result.resp).label.toLowerCase()}: ${S.result.call}.` : ''}
-In 150–230 words of plain prose: judge the quality of their read of the moment; which branches matter most in this situation and whether their likelihoods weight them sensibly; which answers are wrong and what counters them; whether one answer covers several branches at once; and the single most important thing to fix. Be blunt and specific with épée vocabulary.`;
-  try{ const {text} = await sampleFn(prompt, {cache:false, onText:({text}) => { out.textContent = text; }}); S.plan.review = text; }
-  catch(e){ liveFail(e); S.plan.review = e.text || fallback(); out.textContent = S.plan.review; }
-  finally{ btn.disabled = false; }
-}
-const OPP_LINES = {
-  me:['Too slow. I saw it and still could not stop it.','Fine. You will not get that one again.','I gave you that distance. My mistake.'],
-  opp:['You showed me that an exchange ago.','Exactly where I wanted you.','Again. Try something new.'],
-  dbl:['A light each. I can live with that.','Both lights. Count them.','Trade all day.'],
-  none:['Nothing yet. Keep coming.','Close. Not close enough.','I see what you are building.']
-};
-function fallbackCoach(m, res){
-  const p = P(), g = m.tells.find(t=>t.genuine===true), d = m.tells.find(t=>t.genuine===false);
-  let s = `${p.short} was set up for ${I(m.intent).label.toLowerCase()}.`;
-  if(g) s += ` The honest cue was "${g.text.toLowerCase()}".`;
-  if(d) s += ` "${d.text}" was a decoy that looked like ${I(d.decoyOf).label.toLowerCase()}.`;
-  if(!g) s += ' Nothing honest showed, so the read had to come from score, clock and piste position.';
-  s += ` Against what ${p.pr} was likely to do, ${R(res.best).label.toLowerCase()} was the strongest answer`;
-  s += res.best===res.bestAct ? ' and it was also right against what happened.' : `; against what ${p.pr} actually did, ${R(res.bestAct).label.toLowerCase()} would have been best.`;
-  if(m.why[0]) s += ` Key pressure: ${m.why[0].toLowerCase()}.`;
-  return s;
-}
-function factsText(m, res){
-  return `${situationText(m)}
-Cues shown: ${m.tells.map(t=>`"${t.text}" (${t.genuine===true?'genuine':t.genuine===false?'decoy suggesting '+I(t.decoyOf).label.toLowerCase():'habit, no information'})`).join('; ')}.
-Opponent's real intention: ${I(m.intent).label.toLowerCase()}. Pressures shaping it: ${m.why.join('; ') || 'style alone'}.
-Likely-plan probabilities before the action: ${INTENTS.slice().sort((a,b)=>m.dist[b.id]-m.dist[a.id]).slice(0,4).map(x=>`${x.label.toLowerCase()} ${pct(m.dist[x.id])}`).join(', ')}.
-Fencer's read: ${res.frozen ? 'none (ran out of decision time)' : I(res.read).label.toLowerCase()}; ${res.readOk?'exact':res.famOk?'right family, wrong action':'wrong'}.
-Fencer's response: ${R(res.resp).label.toLowerCase()}. Referee: ${res.call}. ${res.sub}
-Decision grade: ${res.grade}. Best against the likely plan: ${R(res.best).label.toLowerCase()}. Best against what actually happened: ${R(res.bestAct).label.toLowerCase()}.
-${S.style==='tree' && S.plan.root.trim() ? `Fencer's written read before the action: "${S.plan.root.trim().slice(0,600)}"` : ''}
-Fencer's habits this session: ${Object.entries(S.myHist).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${R(k).label.toLowerCase()} ×${v}`).join(', ')}.`;
-}
-async function voices(m, res){
-  const p = P(), oppEl = $('#oppLine'), coachEl = $('#coach');
-  oppEl.textContent = pick(OPP_LINES[res.out]); coachEl.textContent = fallbackCoach(m, res);
-  if(!liveOn()) return;
-  oppEl.textContent = '…'; coachEl.textContent = 'Your coach is talking…';
-  const prompt = `You voice two characters in an elite épée training simulator. Reply with only a JSON object {"opponent": string, "coach": string}.
-"opponent": what ${p.name} mutters or thinks right after this action, in character (${p.style}), at most 18 words, no quotation marks.
-"coach": a blunt, specific debrief from a national-team coach to an elite épéeist, 2–3 sentences, at most 80 words. Say what the cues really meant, why this result followed, and the one thing to look for next exchange. Correct épée vocabulary. No percentages.
-Facts (all true; do not contradict them):
-${factsText(m, res)}`;
-  try{
-    const out = await sampleFn.json(prompt, {modelTier:'quick', cache:false});
-    if(S.result !== res) return;
-    oppEl.textContent = (out && out.opponent) ? String(out.opponent) : pick(OPP_LINES[res.out]);
-    coachEl.textContent = (out && out.coach) ? String(out.coach) : fallbackCoach(m, res);
-  }catch(e){ liveFail(e); if(S.result===res){ oppEl.textContent = pick(OPP_LINES[res.out]); coachEl.textContent = fallbackCoach(m, res); } }
-}
-async function deepAnalysis(){
-  if(!liveOn() || !S.result) return;
-  const m = S.moment, res = S.result, btn = $('#deepBtn'), el = $('#coach');
-  btn.disabled = true; el.textContent = 'Thinking it through…';
-  const prompt = `You are a national-team épée coach reviewing one exchange with an elite fencer. In 150–230 words of plain prose (no headings), cover: what the opponent was really doing and why the situation pushed them there; how to separate the genuine cue from the decoy; how the fencer's two or three best alternatives would have played out; and a concrete drill or habit to fix the decision. Be direct and technical.
-Facts:
-${factsText(m, res)}`;
-  try{ await sampleFn(prompt, {modelTier:'complex', onText:({text}) => { el.textContent = text; }}); }
-  catch(e){ liveFail(e); if(!e.text) el.textContent = fallbackCoach(m, res); }
-  finally{ btn.disabled = false; }
-}
-function boutLogText(){
-  return S.log.map(({m,res}) => `#${res.ex} ${fmt(m.clock)} ${m.score.me}-${m.score.opp} ${m.band}; they: ${I(m.intent).label.toLowerCase()}; read: ${res.read?I(res.read).label.toLowerCase():'none'}; did: ${R(res.resp).label.toLowerCase()}; ${res.call}; ${res.grade}`).join('\n');
-}
-function summaryText(){
-  const n = S.log.length, ok = S.log.filter(x=>x.res.readOk).length, good = S.log.filter(x=>['Best choice','Sound'].includes(x.res.grade)).length;
-  const missed = {}; S.log.forEach(x => { if(!x.res.readOk) missed[x.m.intent] = (missed[x.m.intent]||0)+1; });
-  const worst = Object.entries(missed).sort((a,b)=>b[1]-a[1])[0];
-  return `${n} exchanges. Exact reads ${ok} of ${n}; best or sound decisions ${good} of ${n}.` + (worst ? ` The action you misread most: ${I(worst[0]).label.toLowerCase()} (${worst[1]} times).` : '');
-}
-async function fullDebrief(){
-  if(!liveOn()) return;
-  const el = $('#endSummary'), btn = $('#debriefBtn'); btn.disabled = true; el.textContent = 'Your coach is going through the bout…';
-  const prompt = `You are a national-team épée coach debriefing a bout against ${P().name} (${P().style}). Final: you ${S.me}, ${P().short} ${S.opp}. Write 200–300 words of plain prose: the story of the bout, the pattern in the fencer's reads and decisions, how the opponent adapted, and exactly three things to train this week. Be blunt and specific.
-Exchange log:
-${boutLogText().slice(-6000)}`;
-  try{ await sampleFn(prompt, {onText:({text}) => { el.textContent = text; }}); }
-  catch(e){ liveFail(e); if(!e.text) el.textContent = summaryText(); }
-  finally{ btn.disabled = false; }
-}
-const chatTurns = [];
-$('#chatForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const q = $('#chatIn').value.trim(); if(!q) return;
-  const box = $('#chat');
-  const add = (cls, t) => { const d = document.createElement('div'); d.className = 'msg ' + cls; d.textContent = t; box.appendChild(d); box.scrollTop = box.scrollHeight; return d; };
-  add('u', q); $('#chatIn').value = '';
-  if(!liveOn()){ add('sys', 'Live role-play is off or unavailable, so the coach cannot answer free questions here. Branch checks still give built-in feedback.'); return; }
-  const a = add('a', 'Thinking…');
-  const treeLines = S.moment ? INTENTS.filter(x=>S.plan.branches[x.id].resp).map(x=>`${x.label} → ${R(S.plan.branches[x.id].resp).label}`).join('; ') : '';
-  const rules = `You are the corner coach of an NCAA Division I and former national-team épéeist, mid-bout in a training simulator. Answer in at most 120 words, plain prose, direct and technical. ${revealed() ? '' : 'The current action has not happened yet: do not guess what the opponent will do; teach how to read it.'}
-${S.moment ? situationText(S.moment) : ''}
-Score you ${S.me}, ${P().short} ${S.opp}.
-Fencer's current tree: ${treeLines || 'empty'}.
-Recent exchanges:
-${boutLogText().split('\n').slice(-8).join('\n') || 'none yet'}`;
-  chatTurns.push({role:'user', content:q});
-  try{
-    const {text} = await sampleFn([{role:'user', content:rules}, ...chatTurns.slice(-10)], {cache:false, onText:({text}) => { a.textContent = text; box.scrollTop = box.scrollHeight; }});
-    chatTurns.push({role:'assistant', content:text});
-  }catch(err){ liveFail(err); chatTurns.pop(); a.textContent = err.text || (err.code==='rate_limited' ? 'Too many questions at once. Try again in a moment.' : 'The coach could not answer just now.'); }
+
+/* ---------- Events ---------- */
+$('#fencers').addEventListener('click', e => {
+  const b = e.target.closest('[data-f]'); if(!b || b.dataset.f===S.fid) return;
+  S.fid = b.dataset.f; S.ex = 0; S.log = []; newExchange(); renderAll();
 });
-
-/* ================= Flow ================= */
-function nextMoment(useLive){
-  if(S.over) return;
-  S.result = null; S.read = null; $('#result').hidden = true;
-  const keepPlan = S.mode==='drill' && S.plan;
-  S.moment = makeMoment();
-  if(!keepPlan){ S.plan = emptyPlan(); S.open = new Set(); S.sel = 'root'; }
-  else S.plan.review = '';
-  renderBoard(); renderMoment(); renderTree();
-  if(useLive) narrate(S.moment); else { $('#narr').textContent = templateNarration(S.moment); $('#narr').classList.remove('wait'); }
-}
-function commit(readId, respId){
-  if(S.result || !S.moment) return;
-  if(liveCtl){ liveCtl.abort(); liveCtl = null; $('#narr').classList.remove('wait'); }
-  const lk = S.plan.branches[readId].like; S.conf = lk===3 ? 'high' : lk===2 ? 'med' : 'low';
-  const res = resolve(readId, respId, false);
-  S.result = res;
-  S.open.add(res.read); S.open.add(S.moment.intent); S.sel = S.moment.intent;
-  renderBoard(); renderResult(res); renderTree(); renderStats();
-  voices(S.moment, res);
-  $('#nextBtn').innerHTML = S.over ? 'See bout result' : 'Next exchange<kbd>N</kbd>';
-  $('#result').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
-}
-function showEnd(){
-  $('#boutEnd').hidden = false; $('#result').hidden = true;
-  const win = S.winner==='me';
-  $('#endCall').textContent = win ? `Victoire · ${S.me}–${S.opp}` : `Défaite · ${S.me}–${S.opp}`;
-  $('#endSub').textContent = `${win ? 'You beat' : 'You lost to'} ${P().name}.`;
-  $('#endSummary').textContent = summaryText();
-  $('#boutEnd').scrollIntoView({block:'start'});
-}
-function readSetup(){
-  S.mode = $('#mode').value; S.personaId = $('#persona').value; S.format = $('#format').value;
-  if(S.mode==='drill'){
-    const t = FORMATS[S.format].target;
-    S.drill = {me:clamp(parseInt($('#dMe').value)||0,0,t-1), opp:clamp(parseInt($('#dOpp').value)||0,0,t-1),
-               clock:clamp(parseInt($('#dClock').value)||25,1,180), back:clamp(parseFloat($('#dBack').value)||2,.2,6), band:$('#dBand').value};
-  }
-}
-function startSession(useLive){
-  readSetup();
-  const f = fmtCfg();
-  Object.assign(S, {me:0, opp:0, clock:f.len, period:1, xm:-2, xo:2, priority:null, priMin:false, over:false, winner:null, ex:0, oppLast:[], myHist:{}, log:[], result:null, read:null, plan:null});
-  $('#boutEnd').hidden = true; $('#result').hidden = true;
-  $('#startBtn').textContent = S.mode==='drill' ? 'Restart drill' : 'Restart bout';
-  renderStats(); nextMoment(useLive);
-}
-
-/* ================= Events ================= */
-$('#persona').innerHTML = PERSONAS.map(p=>`<option value="${p.id}">${p.name} · ${p.style.split(' who')[0].toLowerCase()}</option>`).join('');
-$('#mode').addEventListener('change', () => { $('#drillBox').hidden = $('#mode').value!=='drill'; });
-$('#startBtn').addEventListener('click', () => startSession(true));
-$('#againBtn').addEventListener('click', () => startSession(true));
-$('#nextBtn').addEventListener('click', () => { if(S.over) showEnd(); else nextMoment(true); });
-$('#deepBtn').addEventListener('click', deepAnalysis);
-$('#debriefBtn').addEventListener('click', fullDebrief);
-$('#reviewBtn').addEventListener('click', reviewTree);
-$('#liveToggle').addEventListener('change', setLive);
-$('#expandAll').addEventListener('click', () => { INTENTS.forEach(x => S.open.add(x.id)); renderTree(); });
-$('#collapseAll').addEventListener('click', () => { S.open.clear(); renderTree(); });
-
-const tcard = $('#treeCard');
-tcard.addEventListener('input', e => {
+const tree = $('#tree');
+tree.addEventListener('input', e => { const t = e.target; if(t.dataset.why){ plan()[t.dataset.why].why = t.value; } });
+tree.addEventListener('change', e => {
   const t = e.target;
-  if(t.dataset.root) S.plan.root = t.value;
-  else if(t.dataset.why) S.plan.branches[t.dataset.why].why = t.value;
+  if(t.dataset.resp){ const p = plan()[t.dataset.resp]; p.resp = t.value; p.checked = false; p.coach = ''; renderTree(); }
 });
-tcard.addEventListener('change', e => {
-  const t = e.target;
-  if(t.dataset.resp){ const b = S.plan.branches[t.dataset.resp]; b.resp = t.value; b.check = null; b.coach = ''; S.open.add(t.dataset.resp); renderTree(); }
-});
-tcard.addEventListener('click', e => {
-  const node = e.target.closest('[data-node]');
-  if(node){
-    const id = node.dataset.node, kind = node.dataset.kind;
-    if(kind==='root') S.sel = 'root';
-    else if(kind==='intent'){
-      if(S.sel===id){ if(S.open.has(id)) S.open.delete(id); else S.open.add(id); }
-      else { S.sel = id; S.open.add(id); }
-    } else S.sel = node.dataset.parent;
-    renderTree();
-    const f = document.querySelector(`[data-node="${CSS.escape(id)}"]`); if(f) f.focus({preventScroll:true});
-    if(kind!=='root'){ const ed = $('#treeEd').getBoundingClientRect(); if(ed.top > innerHeight - 120) $('#treeEd').scrollIntoView({block:'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'}); }
-    return;
-  }
+tree.addEventListener('click', e => {
   const like = e.target.closest('[data-like]');
-  if(like){ const id = like.closest('[data-likeseg]').dataset.likeseg; const b = S.plan.branches[id]; const v = +like.dataset.like; b.like = b.like===v ? 0 : v; renderTree(); return; }
-  const chk = e.target.closest('[data-check]'); if(chk && !chk.disabled){ checkBranch(chk.dataset.check); return; }
-  const play = e.target.closest('[data-play]'); if(play && !play.disabled){ const id = play.dataset.play; commit(id, S.plan.branches[id].resp); return; }
-  const sel = e.target.closest('[data-sel]'); if(sel){ S.sel = sel.dataset.sel; renderTree(); }
+  if(like){ const side = like.closest('[data-likeseg]').dataset.likeseg, p = plan()[side], v = +like.dataset.like; p.like = p.like===v ? 0 : v; renderTree(); return; }
+  const chk = e.target.closest('[data-check]'); if(chk && !chk.disabled){ check(chk.dataset.check); return; }
+  const bet = e.target.closest('[data-bet]');
+  if(bet && !bet.disabled){
+    S.bet = bet.dataset.bet;
+    const p = plan()[S.bet], res = TABLE[p.resp][S.cur.action];
+    S.log.push({right: S.bet===S.cur.side, r: res.r});
+    renderExchange(); renderTree(); renderReveal(); renderLog();
+    $('#reveal').scrollIntoView({block:'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+  }
 });
-addEventListener('keydown', e => {
-  const tag = (e.target.tagName||'');
-  if(tag==='INPUT' || tag==='SELECT' || tag==='TEXTAREA' || e.metaKey || e.ctrlKey || e.altKey) return;
-  if((e.key==='n' || e.key==='N') && S.result){ if(S.over) showEnd(); else nextMoment(true); }
-});
+$('#nextBtn').addEventListener('click', () => { newExchange(); renderExchange(); renderTree(); renderReveal(); });
+$('#liveToggle').addEventListener('change', () => renderTree());
 
-// Opening state: a real first exchange, ready to work on (built-in narration until you press Start).
-readSetup(); startSession(false);
+newExchange(); renderAll();
 })();
 </script>
