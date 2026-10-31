@@ -2,238 +2,142 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: scoring box on top; left = frozen moment, then the expandable decision tree (main work surface), result; right = setup, read stats, corner coach. */
+/* Layout: one column, black on white. Setup row, score line, the moment, the decision tree (left-to-right process chart) with its planning panel, the result, then reads + coach. */
 :root{
-  --bg:#eef1f5; --surface:#ffffff; --sunk:#f5f7fa; --ink:#131a26; --muted:#5b6678; --rule:#d6dce5;
-  --accent:#2747c9; --accent-ink:#ffffff; --accent-soft:#e3e9fb;
-  --red:#d42a2a; --green:#13924a; --amber:#c58705; --none:#b9c2cf;
-  --piste:#c9d0da; --warn:#f1d48f; --chip:#e8ecf2;
+  --paper:#ffffff; --ink:#000000; --mid:#555555; --hair:#cccccc; --soft:#f2f2f2;
   --f-display:"Barlow Condensed","Arial Narrow",sans-serif;
   --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0e131b; --surface:#161d29; --sunk:#111823; --ink:#e7ecf3; --muted:#94a1b5; --rule:#2a3445;
-  --accent:#7f98ff; --accent-ink:#0b1020; --accent-soft:#1e2a4d;
-  --red:#ff5d5d; --green:#3fd982; --amber:#f2b33d; --none:#4a5568;
-  --piste:#3a4558; --warn:#5c4b20; --chip:#202a3a; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0e131b; --surface:#161d29; --sunk:#111823; --ink:#e7ecf3; --muted:#94a1b5; --rule:#2a3445;
-  --accent:#7f98ff; --accent-ink:#0b1020; --accent-soft:#1e2a4d;
-  --red:#ff5d5d; --green:#3fd982; --amber:#f2b33d; --none:#4a5568;
-  --piste:#3a4558; --warn:#5c4b20; --chip:#202a3a; color-scheme:dark}
 *{box-sizing:border-box}
-html,body{background:var(--bg);color:var(--ink)}
+html,body{background:var(--paper);color:var(--ink)}
 body{font-family:var(--f-body);font-size:15px;line-height:1.5;
-  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:18px 40px}
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 48px}
 button,input,select,textarea{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
-h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,5vw,44px);line-height:.95;margin:0;letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
-.head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 20px}
-.head p{margin:6px 0 0;color:var(--muted);max-width:66ch}
-.live{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);border:1px solid var(--rule);border-radius:999px;padding:5px 12px;background:var(--surface)}
-.live i{width:8px;height:8px;border-radius:50%;background:var(--none)}
-.live.on i{background:var(--green)}
-.label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 
-.board{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:10px 16px}
-.fs{display:flex;align-items:center;gap:12px;min-width:0}
-.fs.r{flex-direction:row-reverse;text-align:right}
-.lampdot{width:14px;height:14px;border-radius:50%;flex:none}
-.fs .nm{min-width:0}
-.fs .nm b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fs .nm span{font-size:12px;color:var(--muted)}
-.sc{font-family:var(--f-mono);font-size:clamp(30px,5vw,44px);font-weight:500;line-height:1;margin-left:auto;font-variant-numeric:tabular-nums}
-.fs.r .sc{margin-left:0;margin-right:auto}
-.mid{text-align:center}
-.clock{font-family:var(--f-mono);font-size:clamp(20px,3.6vw,28px);font-variant-numeric:tabular-nums;line-height:1}
-.per{font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:8px 20px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,5vw,42px);line-height:.95;margin:0;text-transform:uppercase;letter-spacing:.01em}
+.head p{margin:6px 0 0;color:var(--mid);max-width:70ch}
+.live{font-size:13px;color:var(--mid);display:flex;align-items:center;gap:6px}
+.live i{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--ink);display:inline-block}
+.live.on i{background:var(--ink)}
 
-.grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:14px;align-items:start}
-@media (max-width:940px){.grid{grid-template-columns:1fr}}
-.col{display:flex;flex-direction:column;gap:14px;min-width:0}
-.card{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:16px;min-width:0}
-.card > h2{margin:0 0 12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
-.card > h2 em{font-style:normal;font-family:var(--f-mono);letter-spacing:0;text-transform:none;font-weight:400}
+.setup{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);padding-block:12px}
+.setup label{display:grid;gap:3px;font-size:12px;color:var(--mid)}
+.setup select,.setup input[type=number]{background:var(--paper);border:1px solid var(--ink);border-radius:5px;padding:6px 8px;color:var(--ink);min-width:0}
+.setup input[type=number]{width:5.5em}
+.setup .chk{display:flex;align-items:center;gap:6px;font-size:13.5px;color:var(--ink);padding-bottom:6px}
+.drill{display:contents}
+.drill[hidden]{display:none}
 
+.board{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.board .side{display:flex;align-items:baseline;gap:10px;min-width:0}
+.board .nm{font-family:var(--f-body);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.board .sc{font-size:clamp(28px,5vw,40px);line-height:1}
+.board .mid{text-align:center}
+.board .clock{font-size:clamp(20px,3.6vw,28px);line-height:1}
+.board .per{font-family:var(--f-body);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);margin-top:4px}
+
+.card{border:1.5px solid var(--ink);border-radius:8px;padding:16px;min-width:0;background:var(--paper)}
+.card > h2{margin:0 0 12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.card > h2 em{font-style:normal;font-family:var(--f-mono);letter-spacing:0;text-transform:none;font-weight:400;color:var(--mid)}
 .piste{overflow-x:auto}
 .piste svg{display:block;width:100%;min-width:420px;height:auto}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.chip{background:var(--chip);border-radius:999px;padding:3px 10px;font-size:13px;white-space:nowrap}
+.chip{border:1px solid var(--ink);border-radius:999px;padding:2px 10px;font-size:13px;white-space:nowrap}
 .chip b{font-weight:600}
-.chip.warn{background:color-mix(in srgb,var(--amber) 22%,transparent)}
-.chip.bad{background:color-mix(in srgb,var(--red) 18%,transparent)}
-.chip.good{background:color-mix(in srgb,var(--green) 18%,transparent)}
-.chip.acc{background:var(--accent-soft)}
-.chip.dim{background:transparent;border:1px dashed var(--rule);color:var(--muted)}
-.opp{display:grid;grid-template-columns:auto 1fr;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--rule)}
-.avatar{width:44px;height:44px;border-radius:50%;background:color-mix(in srgb,var(--green) 22%,var(--surface));display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:20px;color:var(--green)}
+.chip.k{background:var(--ink);color:var(--paper)}
+.opp{margin-top:14px;padding-top:12px;border-top:1px solid var(--hair);font-size:14px}
 .opp b{font-weight:600}
-.opp .sty{color:var(--muted);font-size:14px}
-.opp ul{margin:6px 0 0;padding-left:18px;font-size:13.5px;color:var(--muted)}
-.adapt{margin-top:6px;font-size:13px;color:var(--amber)}
-.narr{margin-top:14px;padding:14px 16px;background:var(--sunk);border-radius:8px;font-size:16px;line-height:1.6;max-width:72ch;min-height:3.2em}
-.narr.wait{color:var(--muted)}
-.cues{margin-top:10px;display:flex;flex-direction:column;gap:4px}
-.cues div{font-size:13.5px;color:var(--muted)}
-.cues div.c::before{content:"·";margin-right:8px;color:var(--ink)}
+.opp .sty{color:var(--mid)}
+.opp .adapt{margin-top:4px;font-weight:500}
+.narr{margin-top:12px;padding:12px 14px;border:1px solid var(--hair);border-radius:6px;font-size:16px;line-height:1.6;max-width:76ch}
+.narr.wait{color:var(--mid)}
+.cues{margin-top:10px;font-size:13.5px;color:var(--mid)}
+.cues span{display:block}
+.cues span::before{content:"– ";color:var(--ink)}
+.lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;color:var(--ink);margin-bottom:2px}
 
-/* decision tree */
-.tools{display:flex;gap:6px;flex-wrap:wrap}
-.mini{background:transparent;border:1px solid var(--rule);border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer;color:var(--muted);letter-spacing:0;text-transform:none;font-weight:500}
-.mini:hover{color:var(--ink);border-color:var(--muted)}
-.intro{margin:0 0 12px;color:var(--muted);font-size:14px;max-width:72ch}
-.root{border:1px solid var(--rule);border-radius:10px;padding:12px 14px;background:var(--sunk)}
-.root .rhd{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;margin-bottom:8px}
-.root .rhd b{font-weight:600}
-textarea,.sel{width:100%;background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:8px 10px;color:var(--ink);resize:vertical}
+.btn{background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:14px}
+.btn.o{background:var(--paper);color:var(--ink)}
+.btn.o:hover{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.o:disabled:hover{background:var(--paper);color:var(--ink)}
+.btn kbd{font-family:var(--f-mono);font-size:11px;opacity:.7;margin-left:6px}
+.mini{background:var(--paper);border:1px solid var(--ink);border-radius:5px;padding:3px 10px;font-size:12px;cursor:pointer;letter-spacing:0;text-transform:none;font-weight:500}
+.mini:hover{background:var(--ink);color:var(--paper)}
+.row{display:flex;flex-wrap:wrap;gap:8px}
+.note{font-size:12.5px;color:var(--mid);margin:8px 0 0}
+
+/* decision tree: left-to-right process chart */
+.intro{margin:0 0 12px;color:var(--mid);font-size:14px;max-width:80ch}
+.tscroll{overflow-x:auto;padding-bottom:4px}
+.tz{position:relative}
+.tz svg{position:absolute;left:0;top:0;overflow:visible}
+.colhd{position:absolute;top:0;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;border-bottom:1.5px solid var(--ink);padding-bottom:3px}
+.tn{position:absolute;background:var(--paper);color:var(--ink);border:1.5px solid var(--ink);border-radius:6px;padding:7px 9px;display:flex;flex-direction:column;align-items:stretch;font:12.5px/17px var(--f-body);cursor:pointer;text-align:left}
+.tn span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tn .b{font-weight:600;font-size:13px;display:flex;justify-content:space-between;gap:6px}
+.tn .b i{font-style:normal;font-family:var(--f-mono);font-weight:500}
+.tn .d{color:var(--mid)}
+.tn:hover{background:var(--soft)}
+.tn.sel{background:var(--ink);color:var(--paper)}
+.tn.sel .d{color:#bbbbbb}
+.tn.best{border-style:double;border-width:4px;padding:5px 7px}
+.tn.beat{border-style:dashed}
+.tn.none{border-style:dotted;border-width:2px}
+.tn.actual{border-width:3.5px;padding:5px 7px}
+.tn.played{outline:2px dashed var(--ink);outline-offset:4px}
+.tkey{font-size:12.5px;color:var(--mid);margin:10px 0 0;max-width:90ch}
+.ed{margin-top:14px;border-top:1.5px solid var(--ink);padding-top:14px;display:grid;gap:10px}
+.edh b{font-weight:600}
+.edh small{display:block;color:var(--mid);font-size:13px}
+.fld{display:grid;gap:4px;font-size:13px;color:var(--mid)}
+textarea,.sel{width:100%;background:var(--paper);border:1px solid var(--ink);border-radius:5px;padding:8px 10px;color:var(--ink);resize:vertical}
 textarea{min-height:64px;line-height:1.45}
-.press{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--muted)}
-.branches{margin:10px 0 0 12px;border-left:2px solid var(--rule);padding-left:18px;display:flex;flex-direction:column;gap:6px}
-details.br{position:relative;border:1px solid var(--rule);border-radius:8px;background:var(--surface)}
-details.br::before{content:"";position:absolute;left:-20px;top:21px;width:18px;border-top:2px solid var(--rule)}
-details.br.actual{border-color:var(--amber)}
-details.br.played{border-color:var(--accent)}
-details summary{list-style:none;cursor:pointer}
-details summary::-webkit-details-marker{display:none}
-.br > summary{padding:9px 12px;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between}
-.bh{display:flex;align-items:baseline;gap:8px;min-width:0}
-.caret{font-family:var(--f-mono);font-size:12px;color:var(--muted);display:inline-block;width:10px;transition:transform .15s}
-details[open] > summary .caret{transform:rotate(90deg)}
-.bh b{font-weight:600}
-.bh .fam{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
-.bchips{display:flex;flex-wrap:wrap;gap:4px}
-.bchips .chip{font-size:12px;padding:2px 8px}
-.bbody{padding:2px 12px 12px 30px;display:grid;gap:10px}
-.bbody .q{font-size:13px;color:var(--muted)}
-.row2{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
-.seg{display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden;flex-wrap:wrap}
-.seg button{background:transparent;border:0;border-right:1px solid var(--rule);padding:4px 10px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--ink);border-radius:5px;overflow:hidden;width:max-content;max-width:100%}
+.seg button{background:var(--paper);border:0;border-right:1px solid var(--ink);padding:4px 12px;font-size:13px;cursor:pointer}
 .seg button:last-child{border-right:0}
-.seg button.on{background:var(--accent);color:var(--accent-ink)}
-.fld{display:grid;gap:4px;font-size:13px;color:var(--muted)}
-.bact{display:flex;flex-wrap:wrap;gap:8px}
-.fb{background:var(--sunk);border-radius:8px;padding:10px 12px;font-size:14px;white-space:pre-wrap;max-width:76ch}
-.fb .vd{display:inline-block;font-weight:600;margin-right:6px}
-.fb .vd.Optimal{color:var(--green)} .fb .vd.Sound{color:var(--green)} .fb .vd.Suboptimal{color:var(--amber)} .fb .vd.Mistake{color:var(--red)}
-.fb .ex{margin-top:6px;color:var(--ink)}
-.fb .ex.wait{color:var(--muted)}
-.subs{border-left:2px solid var(--rule);margin-left:4px;padding-left:14px;display:grid;gap:6px}
-details.sub{position:relative}
-details.sub::before{content:"";position:absolute;left:-16px;top:11px;width:12px;border-top:2px solid var(--rule)}
-details.sub > summary{font-size:13.5px;font-weight:600;padding:2px 0;display:flex;gap:6px;align-items:baseline}
-details.sub > summary span.m{font-weight:400;color:var(--muted)}
-.subbody{padding:6px 0 4px 16px}
-.trow{display:grid;grid-template-columns:9em minmax(0,1fr) 3.4em;align-items:center;gap:8px;font-size:13px;padding:3px 0}
-.trow .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.trow .num{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
-.trow.mine{background:var(--accent-soft);border-radius:4px;box-shadow:-6px 0 0 var(--accent-soft),6px 0 0 var(--accent-soft)}
-.bar{height:12px;background:var(--chip);border-radius:3px;overflow:hidden;display:flex}
-.bar i{display:block;height:100%}
-.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-top:6px}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
-.review{margin-top:14px;padding-top:14px;border-top:1px solid var(--rule);display:grid;gap:10px}
-.review .out{white-space:pre-wrap;max-width:76ch;font-size:14.5px}
-
-.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:14px}
-.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule)}
-.btn.play{background:var(--ink);color:var(--surface)}
-.btn:disabled{opacity:.45;cursor:not-allowed}
-.btn kbd{font-family:var(--f-mono);font-size:11px;opacity:.75;margin-left:6px}
-
-/* quick mode */
-.stephd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px}
-.stephd h3{margin:0;font-size:15px;font-weight:600}
-.stephd h3 span{color:var(--muted);font-weight:400}
-.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-@media (max-width:560px){.opts{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.opt{text-align:left;background:var(--sunk);border:1px solid var(--rule);border-radius:8px;padding:8px 10px;cursor:pointer;display:flex;gap:8px;align-items:flex-start;min-width:0}
-.opt:hover:not(:disabled){border-color:var(--muted)}
-.opt:disabled{opacity:.45;cursor:not-allowed}
-.opt kbd{font-family:var(--f-mono);font-size:11px;color:var(--muted);border:1px solid var(--rule);border-radius:4px;padding:0 4px;line-height:1.5;flex:none}
-.opt b{display:block;font-size:14px;font-weight:600}
-.opt span{display:block;font-size:12px;color:var(--muted);line-height:1.35}
-.opt.sel{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
-.timer{height:4px;background:var(--chip);border-radius:2px;overflow:hidden;margin-bottom:10px}
-.timer i{display:block;height:100%;background:var(--amber);width:100%}
+.seg button.on{background:var(--ink);color:var(--paper)}
+.fb{border:1px solid var(--ink);border-radius:6px;padding:10px 12px;font-size:14px;white-space:pre-wrap;max-width:80ch}
+.fb .ex{margin-top:6px}
+.fb .ex.wait{color:var(--mid)}
+.press{margin:4px 0 0;padding-left:18px;font-size:13.5px;color:var(--mid)}
+.review{margin-top:14px;border-top:1px solid var(--hair);padding-top:12px;display:grid;gap:8px}
+.review .out{white-space:pre-wrap;max-width:80ch;font-size:14.5px}
 
 .call{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,5vw,40px);line-height:1;text-transform:uppercase;letter-spacing:.02em}
-.call.me{color:var(--red)} .call.opp{color:var(--green)} .call.dbl{color:var(--amber)} .call.none{color:var(--muted)}
-.callsub{color:var(--muted);margin-top:4px;max-width:76ch}
+.callsub{color:var(--mid);margin-top:4px;max-width:80ch}
 .verdicts{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .voice{margin-top:14px;display:grid;gap:10px}
-.voice .who{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:2px}
-.voice .oppline{font-style:italic;max-width:68ch}
-.voice .coach{max-width:76ch;white-space:pre-wrap}
-.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.voice .oppline{font-style:italic;max-width:70ch}
+.voice .coach{max-width:80ch;white-space:pre-wrap}
+.summary{white-space:pre-wrap;max-width:76ch}
 
-.form{display:grid;gap:10px}
-.form label{display:grid;gap:4px;font-size:13px;color:var(--muted)}
-.form select,.form input{background:var(--sunk);border:1px solid var(--rule);border-radius:6px;padding:7px 9px;color:var(--ink);width:100%}
-.form .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.toggle{display:flex!important;align-items:center;gap:8px;font-size:13.5px;color:var(--ink)!important}
-.toggle input{width:auto!important}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:800px){.two{grid-template-columns:1fr}}
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.stat{background:var(--sunk);border-radius:8px;padding:8px 10px}
+.stat{border:1px solid var(--hair);border-radius:6px;padding:8px 10px}
 .stat b{display:block;font-family:var(--f-mono);font-size:20px;font-weight:500;font-variant-numeric:tabular-nums}
-.stat span{font-size:12px;color:var(--muted)}
-.habits{margin-top:12px;display:grid;gap:4px}
-.calib{margin-top:10px;font-size:13px;color:var(--muted)}
-.chat{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow:auto;margin-bottom:10px}
-.msg{font-size:14px;padding:8px 10px;border-radius:8px;max-width:92%;white-space:pre-wrap}
-.msg.u{align-self:flex-end;background:var(--accent-soft)}
-.msg.a{align-self:flex-start;background:var(--sunk)}
-.msg.sys{align-self:stretch;background:transparent;color:var(--muted);font-size:13px;padding:0}
+.stat span{font-size:12px;color:var(--mid)}
+.calib{margin-top:10px;font-size:13px;color:var(--mid)}
+.trow{display:grid;grid-template-columns:9em minmax(0,1fr) 2.5em;align-items:center;gap:8px;font-size:13px;padding:2px 0}
+.trow .num{font-family:var(--f-mono);text-align:right;color:var(--mid);font-size:12px}
+.bar{height:10px;border:1px solid var(--ink);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ink)}
+.habits{margin-top:10px;display:grid;gap:2px}
+.chat{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow:auto;margin-bottom:10px}
+.msg{font-size:14px;padding:8px 10px;border-radius:6px;max-width:92%;white-space:pre-wrap}
+.msg.u{align-self:flex-end;background:var(--ink);color:var(--paper)}
+.msg.a{align-self:flex-start;border:1px solid var(--ink)}
+.msg.sys{align-self:stretch;color:var(--mid);font-size:13px;padding:0}
 .chatform{display:flex;gap:6px}
-.chatform input{flex:1;min-width:0;background:var(--sunk);border:1px solid var(--rule);border-radius:6px;padding:8px 10px}
-.note{font-size:12.5px;color:var(--muted);margin:8px 0 0}
-.summary{white-space:pre-wrap;max-width:72ch}
-
-/* black & white decision tree */
-#treeCard{background:#fff;color:#000;border-color:#000}
-#treeCard > h2{color:#000}
-#treeCard .mini{background:#fff;color:#000;border-color:#000}
-#treeCard .mini:hover{background:#000;color:#fff}
-#treeCard .intro{color:#222}
-#treeCard :focus-visible{outline:2px solid #000;outline-offset:3px}
-.tscroll{overflow:auto;border:1px solid #000;border-radius:8px;padding:12px;background:#fff;max-height:78vh}
-.tz{position:relative;margin:0 auto}
-.tzi{position:relative;transform-origin:0 0}
-.tzi svg{position:absolute;left:0;top:0;overflow:visible}
-.tn{position:absolute;background:#fff;color:#000;border:1.5px solid #000;border-radius:10px;padding:9px 6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font:13px/17px var(--f-body);cursor:pointer;text-align:center}
-.tn span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.tn .b{font-weight:600}
-.tn .tg{color:#555;font-size:12px}
-.tn:hover{background:#efefef}
-.tn.sel{background:#000;color:#fff}
-.tn.sel .tg{color:#bbb}
-.tn.actual{border-width:3.5px}
-.tn.played{outline:2px dashed #000;outline-offset:4px}
-.tn.none{border-style:dashed}
-.tkey{font-size:12.5px;color:#333;margin:8px 0 0}
-.ed{margin-top:12px;border:1.5px solid #000;border-radius:10px;padding:14px;display:grid;gap:10px;background:#fff;color:#000}
-.edh{display:flex;flex-direction:column;gap:2px}
-.edh b{font-weight:600}
-.edh small,.edlbl{color:#444;font-size:13px}
-.ed .fld{color:#222}
-.ed textarea,.ed .sel{background:#fff;color:#000;border:1px solid #000}
-.ed .seg{border-color:#000}
-.ed .seg button{color:#000;border-right-color:#000}
-.ed .seg button.on{background:#000;color:#fff}
-.ed .fb{background:#fff;border:1px solid #000;color:#000}
-.ed .fb .ex{color:#000}
-.ed .fb .ex.wait{color:#555}
-.ed .note,.ed .press{color:#333}
-.bwbtn{background:#000;color:#fff;border:1px solid #000;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:14px}
-.bwbtn.o{background:#fff;color:#000}
-.bwbtn.o:hover{background:#000;color:#fff}
-.bwbtn:disabled{opacity:.35;cursor:not-allowed}
-.bwbtn:disabled:hover{background:#fff;color:#000}
-#treeCard .review{border-top-color:#000}
-#treeCard .review .out{color:#000}
+.chatform input{flex:1;min-width:0;border:1px solid var(--ink);border-radius:5px;padding:8px 10px;background:var(--paper)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -241,139 +145,102 @@ details.sub > summary span.m{font-weight:400;color:var(--muted)}
   <header class="head">
     <div>
       <h1>Épée Read Room</h1>
-      <p>Every exchange freezes before you move. Build your decision tree: how likely each action is, what you would do against it, and why. Your coach checks each branch. Then play the branch you believe in.</p>
+      <p>Each exchange freezes before you move. Map what your opponent might do, plan your answer to each, check it with your coach, then play the branch you believe in.</p>
     </div>
     <span class="live" id="live"><i></i><span id="liveText">Checking live role-play…</span></span>
   </header>
 
-  <section class="board" aria-label="Scoring box">
-    <div class="fs"><span class="lampdot" style="background:var(--red)"></span><div class="nm"><b>You</b><span>Left · red</span></div><div class="sc" id="scMe">0</div></div>
+  <div class="setup">
+    <label>Mode<select id="mode"><option value="bout">Full bout</option><option value="drill">Scenario drill</option></select></label>
+    <label>Opponent<select id="persona"></select></label>
+    <label>Format<select id="format"><option value="pool">Pool · 5 · 3:00</option><option value="de">DE · 15 · 3×3:00</option></select></label>
+    <span class="drill" id="drillBox" hidden>
+      <label>You<input id="dMe" type="number" min="0" max="14" value="4"></label>
+      <label>Them<input id="dOpp" type="number" min="0" max="14" value="4"></label>
+      <label>Clock s<input id="dClock" type="number" min="1" max="180" value="25"></label>
+      <label>Back foot m<input id="dBack" type="number" min="0.2" max="6" step="0.1" value="1.6"></label>
+      <label>Distance<select id="dBand"><option value="far">Out of distance</option><option value="advlunge">Advance-lunge</option><option value="lunge" selected>Lunge</option><option value="close">Close quarters</option></select></label>
+    </span>
+    <label class="chk"><input type="checkbox" id="liveToggle" checked> Live role-play</label>
+    <button class="btn" id="startBtn" type="button">Start</button>
+  </div>
+
+  <section class="board" aria-label="Score">
+    <div class="side"><span class="nm">You</span><span class="sc" id="scMe">0</span></div>
     <div class="mid"><div class="clock" id="clock">3:00</div><div class="per" id="per">Pool · to 5</div></div>
-    <div class="fs r"><span class="lampdot" style="background:var(--green)"></span><div class="nm"><b id="oppName">Opponent</b><span id="oppHand">Right · green</span></div><div class="sc" id="scOpp">0</div></div>
+    <div class="side"><span class="sc" id="scOpp">0</span><span class="nm" id="oppName">Opponent</span></div>
   </section>
 
-  <div class="grid">
-    <div class="col">
-      <section class="card" aria-labelledby="mHd">
-        <h2 id="mHd"><span>The moment</span><em id="exNo">Exchange 1</em></h2>
-        <div class="piste" id="piste"></div>
-        <div class="chips" id="chips"></div>
-        <div class="opp" id="oppCard"></div>
-        <div class="narr" id="narr" aria-live="polite"></div>
-        <div class="cues" id="cues"></div>
-      </section>
+  <section class="card" aria-labelledby="mHd">
+    <h2 id="mHd"><span>The moment</span><em id="exNo">Exchange 1</em></h2>
+    <div class="piste" id="piste"></div>
+    <div class="chips" id="chips"></div>
+    <div class="opp" id="oppCard"></div>
+    <div class="narr" id="narr" aria-live="polite"></div>
+    <div class="cues" id="cues"></div>
+  </section>
 
-      <section class="card" id="result" hidden aria-labelledby="rHd">
-        <h2 id="rHd"><span>Resolution</span><em id="resEx"></em></h2>
-        <div class="call" id="call"></div>
-        <div class="callsub" id="callSub"></div>
-        <div class="verdicts" id="verdicts"></div>
-        <div class="voice">
-          <div><div class="who" id="oppWho">Opponent</div><div class="oppline" id="oppLine"></div></div>
-          <div><div class="who">Your coach</div><div class="coach" id="coach"></div></div>
-        </div>
-        <div class="actions">
-          <button class="btn" id="nextBtn" type="button">Next exchange<kbd>N</kbd></button>
-          <button class="btn ghost" id="deepBtn" type="button">Deeper analysis</button>
-        </div>
-      </section>
-
-      <section class="card" id="treeCard" aria-labelledby="tHd">
-        <h2 id="tHd"><span>Decision tree</span><span class="tools">
-          <button class="mini" type="button" id="expandAll">Expand all</button><button class="mini" type="button" id="collapseAll">Collapse all</button>
-          <button class="mini" type="button" data-zoom="out" aria-label="Zoom out">−</button><button class="mini" type="button" data-zoom="fit" id="zoomLbl">Fit</button><button class="mini" type="button" data-zoom="in" aria-label="Zoom in">+</button>
-        </span></h2>
-        <p class="intro" id="treeIntro"></p>
-        <div class="tscroll" id="treeScroll"><div id="tree"></div></div>
-        <p class="tkey">value = expected touches for you (+1 your touch, −1 theirs) · lights = [you, double, them, no touch] in %</p>
-        <div class="ed" id="treeEd"></div>
-        <div class="review">
-          <div class="bact"><button class="bwbtn o" type="button" id="reviewBtn">Review my whole tree</button></div>
-          <div class="out" id="reviewOut"></div>
-        </div>
-      </section>
-
-      <section class="card" id="decide" hidden aria-labelledby="dHd">
-        <h2 id="dHd"><span>Quick read</span><em id="timerLbl"></em></h2>
-        <div class="timer" id="timer" hidden><i id="timerBar"></i></div>
-        <div class="stephd"><h3>1 · Read <span>What are they about to do?</span></h3>
-          <div class="seg" id="conf" role="group" aria-label="Confidence"><button type="button" data-c="low">Hunch</button><button type="button" data-c="med" class="on">Fairly sure</button><button type="button" data-c="high">Certain</button></div>
-        </div>
-        <div class="opts" id="readOpts"></div>
-        <div class="stephd" style="margin-top:14px"><h3>2 · Respond <span>Commits immediately</span></h3></div>
-        <div class="opts" id="respOpts"></div>
-        <p class="note">Keys: 1–9 pick in the active step, Backspace changes your read, N goes to the next exchange.</p>
-      </section>
-
-      <section class="card" id="boutEnd" hidden aria-labelledby="bHd">
-        <h2 id="bHd"><span>Bout over</span></h2>
-        <div class="call" id="endCall"></div>
-        <p class="callsub" id="endSub"></p>
-        <div class="summary" id="endSummary"></div>
-        <div class="actions">
-          <button class="btn" id="debriefBtn" type="button">Full debrief from your coach</button>
-          <button class="btn ghost" id="againBtn" type="button">New bout</button>
-        </div>
-      </section>
+  <section class="card" id="result" hidden aria-labelledby="rHd">
+    <h2 id="rHd"><span>Resolution</span><em id="resEx"></em></h2>
+    <div class="call" id="call"></div>
+    <div class="callsub" id="callSub"></div>
+    <div class="verdicts" id="verdicts"></div>
+    <div class="voice">
+      <div><div class="lbl" id="oppWho">Opponent</div><div class="oppline" id="oppLine"></div></div>
+      <div><div class="lbl">Your coach</div><div class="coach" id="coach"></div></div>
     </div>
-
-    <div class="col">
-      <section class="card" aria-labelledby="sHd">
-        <h2 id="sHd"><span>Setup</span></h2>
-        <div class="form">
-          <label>How you decide
-            <select id="style"><option value="tree">Build the tree (think it through)</option><option value="quick">Quick reads (timed reflex)</option></select>
-          </label>
-          <label>Mode
-            <select id="mode"><option value="bout">Full bout</option><option value="drill">Scenario drill (repeat one situation)</option></select>
-          </label>
-          <label>Opponent<select id="persona"></select></label>
-          <div class="two">
-            <label>Format<select id="format"><option value="pool">Pool · 5 · 3:00</option><option value="de">DE · 15 · 3×3:00</option></select></label>
-            <label>Quick-read clock<select id="timed"><option value="0">Untimed</option><option value="6">6 seconds</option><option value="3.5">3.5 seconds</option></select></label>
-          </div>
-          <div id="drillBox" hidden class="form">
-            <div class="two">
-              <label>Your score<input id="dMe" type="number" min="0" max="14" value="4"></label>
-              <label>Their score<input id="dOpp" type="number" min="0" max="14" value="4"></label>
-            </div>
-            <div class="two">
-              <label>Clock (seconds)<input id="dClock" type="number" min="1" max="180" value="25"></label>
-              <label>Your back foot to end (m)<input id="dBack" type="number" min="0.2" max="6" step="0.1" value="1.6"></label>
-            </div>
-            <label>Distance<select id="dBand"><option value="far">Out of distance</option><option value="advlunge">Advance-lunge distance</option><option value="lunge" selected>Lunge distance</option><option value="close">Close quarters</option></select></label>
-            <p class="note" style="margin:0">In a drill your tree carries over between repeats, so you can refine it.</p>
-          </div>
-          <label class="toggle"><input type="checkbox" id="liveToggle" checked> Live role-play (Claude voices opponent and coach)</label>
-          <button class="btn" id="startBtn" type="button">Start</button>
-        </div>
-      </section>
-
-      <section class="card" aria-labelledby="stHd">
-        <h2 id="stHd"><span>Your reads</span><em id="stN">0 exchanges</em></h2>
-        <div class="stats">
-          <div class="stat"><b id="stRead">–</b><span>Exact reads</span></div>
-          <div class="stat"><b id="stFam">–</b><span>Right family</span></div>
-          <div class="stat"><b id="stDec">–</b><span>Best or sound calls</span></div>
-        </div>
-        <div class="calib" id="calib"></div>
-        <div class="calib" id="treeStat"></div>
-        <div class="habits" id="habits"></div>
-      </section>
-
-      <section class="card" aria-labelledby="cHd">
-        <h2 id="cHd"><span>Corner coach</span></h2>
-        <div class="chat" id="chat"><div class="msg sys">Ask anything between exchanges: why a branch is wrong, what the opponent is setting up, how to play 4–4 with 20 seconds left.</div></div>
-        <form class="chatform" id="chatForm"><input id="chatIn" placeholder="Ask your coach…" autocomplete="off" aria-label="Message to your coach"><button class="btn" type="submit">Ask</button></form>
-      </section>
+    <div class="row" style="margin-top:16px">
+      <button class="btn" id="nextBtn" type="button">Next exchange<kbd>N</kbd></button>
+      <button class="btn o" id="deepBtn" type="button">Deeper analysis</button>
     </div>
+  </section>
+
+  <section class="card" id="boutEnd" hidden aria-labelledby="bHd">
+    <h2 id="bHd"><span>Bout over</span></h2>
+    <div class="call" id="endCall"></div>
+    <p class="callsub" id="endSub"></p>
+    <div class="summary" id="endSummary"></div>
+    <div class="row" style="margin-top:16px">
+      <button class="btn" id="debriefBtn" type="button">Full debrief from your coach</button>
+      <button class="btn o" id="againBtn" type="button">New bout</button>
+    </div>
+  </section>
+
+  <section class="card" id="treeCard" aria-labelledby="tHd">
+    <h2 id="tHd"><span>Decision tree</span><span class="row"><button class="mini" type="button" id="expandAll">Expand all</button><button class="mini" type="button" id="collapseAll">Collapse all</button></span></h2>
+    <p class="intro" id="treeIntro"></p>
+    <div class="tscroll" id="treeScroll"><div id="tree"></div></div>
+    <p class="tkey">Value: expected touches for you, +1 your touch, −1 theirs. Lights: [you, double, them, no touch] in %. Double border: best answer. Dashed: their action that beats your answer.</p>
+    <div class="ed" id="treeEd"></div>
+    <div class="review">
+      <div class="row"><button class="btn o" type="button" id="reviewBtn">Review my whole tree</button></div>
+      <div class="out" id="reviewOut"></div>
+    </div>
+  </section>
+
+  <div class="two">
+    <section class="card" aria-labelledby="stHd">
+      <h2 id="stHd"><span>Your reads</span><em id="stN">0 exchanges</em></h2>
+      <div class="stats">
+        <div class="stat"><b id="stRead">–</b><span>Exact reads</span></div>
+        <div class="stat"><b id="stFam">–</b><span>Right family</span></div>
+        <div class="stat"><b id="stDec">–</b><span>Best or sound</span></div>
+      </div>
+      <div class="calib" id="calib"></div>
+      <div class="calib" id="treeStat"></div>
+      <div class="habits" id="habits"></div>
+    </section>
+    <section class="card" aria-labelledby="cHd">
+      <h2 id="cHd"><span>Corner coach</span></h2>
+      <div class="chat" id="chat"><div class="msg sys">Ask anything between exchanges: why a branch is wrong, what the opponent is setting up, how to play 4–4 with 20 seconds left.</div></div>
+      <form class="chatform" id="chatForm"><input id="chatIn" placeholder="Ask your coach…" autocomplete="off" aria-label="Message to your coach"><button class="btn" type="submit">Ask</button></form>
+    </section>
   </div>
 </div>
 
 <script>
 (function(){
 const $ = s => document.querySelector(s);
-const $$ = s => [...document.querySelectorAll(s)];
 const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const pct = p => Math.round(p*100) + '%';
@@ -659,51 +526,48 @@ function renderBoard(){
   $('#per').textContent = S.mode==='drill' ? 'Scenario drill'
     : S.priMin ? `Priority · ${S.priority==='me' ? 'you' : P().short}`
     : `${f.label} · to ${f.target}` + (f.periods>1 ? ` · P${S.period}` : '');
-  $('#oppName').textContent = P().name; $('#oppHand').textContent = `${P().hand}-handed · green`;
+  $('#oppName').textContent = P().name;
 }
 function renderPiste(){
   const X = v => 20 + (v+7)*600/14;
-  const lines = [-7,-2,0,2,7].map(v => `<line x1="${X(v)}" y1="34" x2="${X(v)}" y2="62" stroke="var(--ink)" stroke-width="${v===0?2:1.2}" opacity=".55"/>`).join('');
-  const lbls = [-7,-5,-2,0,2,5,7].map(v => `<text x="${X(v)}" y="78" text-anchor="middle" font-size="10" fill="var(--muted)" font-family="IBM Plex Mono, monospace">${Math.abs(v)}</text>`).join('');
+  const lines = [-7,-2,0,2,7].map(v => `<line x1="${X(v)}" y1="38" x2="${X(v)}" y2="58" stroke="#000" stroke-width="${v===0?2:1.2}"/>`).join('');
+  const lbls = [-7,-5,-2,0,2,5,7].map(v => `<text x="${X(v)}" y="74" text-anchor="middle" font-size="10" fill="#555" font-family="IBM Plex Mono, monospace">${Math.abs(v)}</text>`).join('');
   const xm = X(S.xm), xo = X(S.xo), gap = (S.xo-S.xm).toFixed(1);
-  return `<svg viewBox="0 0 640 96" role="img" aria-label="Piste: ${gap} metres between fencers">
-    <rect x="${X(-8)}" y="40" width="${X(8)-X(-8)}" height="16" fill="var(--piste)" opacity=".5"/>
-    <rect x="${X(-7)}" y="40" width="${X(7)-X(-7)}" height="16" fill="var(--piste)"/>
-    <rect x="${X(-7)}" y="40" width="${X(-5)-X(-7)}" height="16" fill="var(--warn)"/>
-    <rect x="${X(5)}" y="40" width="${X(7)-X(5)}" height="16" fill="var(--warn)"/>
+  return `<svg viewBox="0 0 640 92" role="img" aria-label="Piste: ${gap} metres between fencers">
+    <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="#000" stroke-width="1"/></pattern></defs>
+    <rect x="${X(-7)}" y="40" width="${X(7)-X(-7)}" height="16" fill="#fff" stroke="#000" stroke-width="1.2"/>
+    <rect x="${X(-7)}" y="40" width="${X(-5)-X(-7)}" height="16" fill="url(#hatch)" opacity=".45"/>
+    <rect x="${X(5)}" y="40" width="${X(7)-X(5)}" height="16" fill="url(#hatch)" opacity=".45"/>
     ${lines}${lbls}
-    <path d="M${xm-8},20 L${xm+8},27 L${xm-8},34 Z" fill="var(--red)"/>
-    <text x="${xm}" y="14" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)" font-family="IBM Plex Sans, sans-serif">You</text>
-    <path d="M${xo+8},20 L${xo-8},27 L${xo+8},34 Z" fill="var(--green)"/>
-    <text x="${xo}" y="14" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)" font-family="IBM Plex Sans, sans-serif">${esc(P().short)}</text>
-    <line x1="${xm+10}" y1="27" x2="${xo-10}" y2="27" stroke="var(--muted)" stroke-dasharray="3 3"/>
-    <text x="${(xm+xo)/2}" y="92" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono, monospace">${gap} m</text>
+    <path d="M${xm-8},18 L${xm+8},26 L${xm-8},34 Z" fill="#000"/>
+    <text x="${xm}" y="12" text-anchor="middle" font-size="11" font-weight="600" fill="#000" font-family="IBM Plex Sans, sans-serif">You</text>
+    <path d="M${xo+8},18 L${xo-8},26 L${xo+8},34 Z" fill="#fff" stroke="#000" stroke-width="1.5"/>
+    <text x="${xo}" y="12" text-anchor="middle" font-size="11" font-weight="600" fill="#000" font-family="IBM Plex Sans, sans-serif">${esc(P().short)}</text>
+    <line x1="${xm+10}" y1="26" x2="${xo-10}" y2="26" stroke="#000" stroke-dasharray="3 3"/>
+    <text x="${(xm+xo)/2}" y="89" text-anchor="middle" font-size="11" fill="#000" font-family="IBM Plex Mono, monospace">${gap} m</text>
   </svg>`;
 }
-function dvChip(dv){
-  const map = {win:['good','A double wins you the bout'], lose:['bad','A double loses you the bout'], annul:['warn','A double is annulled here'],
-               good:['good','Doubles favour you'], bad:['bad','Doubles hurt you'], neutral:['', 'Doubles are neutral']};
-  const [c,t] = map[dv.kind]; return `<span class="chip ${c}">${t}</span>`;
-}
+const DVS = {win:'a double wins you the bout', lose:'a double loses you the bout', annul:'a double is annulled', good:'doubles favour you', bad:'doubles hurt you', neutral:'doubles are neutral'};
 const scoreLine = m => { const l = m.score.me - m.score.opp; return l>0 ? `You lead by ${l}` : l<0 ? `You trail by ${-l}` : 'Level'; };
 function renderMoment(){
   const m = S.moment, p = P();
   $('#exNo').textContent = `Exchange ${m.ex}`;
   $('#piste').innerHTML = renderPiste();
+  const strongDv = ['win','lose','annul'].includes(m.dv.kind);
   $('#chips').innerHTML = [
     `<span class="chip"><b>${BANDS[m.band].label}</b></span>`,
-    `<span class="chip ${m.myBack<2?'bad':''}">Your back foot <b>${m.myBack.toFixed(1)} m</b> from the end</span>`,
-    `<span class="chip ${m.oppBack<2?'good':''}">Theirs <b>${m.oppBack.toFixed(1)} m</b></span>`,
+    `<span class="chip ${m.myBack<2?'k':''}">Your back foot <b>${m.myBack.toFixed(1)} m</b> from the end</span>`,
+    `<span class="chip">Theirs <b>${m.oppBack.toFixed(1)} m</b></span>`,
     `<span class="chip">${scoreLine(m)} · <b>${fmt(m.clock)}</b>${S.priMin?' · priority minute':''}</span>`,
     `<span class="chip">${m.blade}</span>`,
-    dvChip(m.dv),
+    `<span class="chip ${strongDv?'k':''}">${DVS[m.dv.kind].replace(/^./, c=>c.toUpperCase())}</span>`,
     m.last.length ? `<span class="chip">Their last: <b>${m.last.map(x=>I(x).label.toLowerCase()).join(', then ')}</b></span>` : ''
   ].join('');
   const tot = Object.values(S.myHist).reduce((a,b)=>a+b,0);
   let adapt = '';
   if(tot>=3){ let top=null,n=0; for(const [k,v] of Object.entries(S.myHist)) if(v>n){top=k;n=v;} if(n/tot>=.34) adapt = `${p.short} has seen you choose ${R(top).label.toLowerCase()} ${n} of ${tot} times.`; }
-  $('#oppCard').innerHTML = `<div class="avatar">${esc(p.short[0])}</div><div><b>${esc(p.name)}</b> · ${p.hand}-handed<div class="sty">${esc(p.style)}</div><ul>${p.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>${adapt?`<div class="adapt">${esc(adapt)}</div>`:''}</div>`;
-  $('#cues').innerHTML = '<div class="label">Cues you can see</div>' + m.tells.map(t=>`<div class="c">${esc(t.text)}</div>`).join('');
+  $('#oppCard').innerHTML = `<b>${esc(p.name)}</b> · ${p.hand}-handed · <span class="sty">${esc(p.style)} ${esc(p.notes.join('. '))}.</span>${adapt?`<div class="adapt">${esc(adapt)}</div>`:''}`;
+  $('#cues').innerHTML = '<div class="lbl">Cues you can see</div>' + m.tells.map(t=>`<span>${esc(t.text)}</span>`).join('');
 }
 function templateNarration(m){
   const p = P(), a = p.pr==='she' ? 'She' : 'He';
@@ -711,105 +575,85 @@ function templateNarration(m){
   return `${b}. ${m.tells[0].text}. ${m.tells[1] ? m.tells[1].text + '.' : ''} ${a} is ${m.dv.kind==='win' ? 'wary of trading touches' : m.dv.kind==='lose' ? 'happy to trade touches' : 'reading you as closely as you read ' + p.obj}.`;
 }
 
-/* ================= Rendering: decision tree (black & white node-link diagram) ================= */
+/* ================= Rendering: decision tree (left-to-right process chart) ================= */
 const revealed = () => !!S.result;
-const NW = 172, HG = 16, VG = 56, LH = 17, PADY = 9;
+const COLW = [200, 214, 214, 204], CGAP = 60, VG = 12, LH = 17, PADY = 7, HEADH = 34;
+const COLX = (() => { const a = [0]; for(let i=1;i<COLW.length;i++) a[i] = a[i-1] + COLW[i-1] + CGAP; return a; })();
+const COLS = ['Situation', 'They might…', 'You answer', 'What beats it'];
 const lightsArr = pr => `[${Math.round(pr.me*100)}, ${Math.round(pr.db*100)}, ${Math.round(pr.op*100)}, ${Math.round(pr.none*100)}]`;
-const DVS = {win:'win the bout', lose:'lose the bout', annul:'annulled', good:'favour you', bad:'hurt you', neutral:'neutral'};
 function buildTree(){
   const m = S.moment;
   return {id:'root', kind:'root', lines:[
-    {t:'situation', b:true}, {t:BANDS[m.band].label.toLowerCase()}, {t:`gap = ${m.gap.toFixed(1)} m`},
-    {t:`score = ${m.score.me}–${m.score.opp} · ${fmt(m.clock)}`}, {t:`your back foot = ${m.myBack.toFixed(1)} m`},
-    {t:`doubles = ${DVS[m.dv.kind]}`}
+    {t:'Situation', b:true}, {t:BANDS[m.band].label}, {t:`gap ${m.gap.toFixed(1)} m`, d:true},
+    {t:`score ${m.score.me}–${m.score.opp} · ${fmt(m.clock)}`, d:true}, {t:`back foot ${m.myBack.toFixed(1)} m from end`, d:true},
+    {t:DVS[m.dv.kind], d:true}
   ], children: INTENTS.map(intentNode)};
 }
 function intentNode(it){
   const b = S.plan.branches[it.id], m = S.moment, open = S.open.has(it.id);
-  const lines = [{t:`they: ${it.label.toLowerCase()}`, b:true},
-    {t:`estimate = ${b.like ? LIKE[b.like].l.toLowerCase() : '?'}`},
-    {t:`answer = ${b.resp ? R(b.resp).label.toLowerCase() : '?'}`}];
-  if(b.check) lines.push({t:`verdict = ${b.check.verdict.toLowerCase()}`});
+  const lines = [{t:it.label, b:true, g: open ? '−' : '+'},
+    {t:`estimate: ${b.like ? LIKE[b.like].l.toLowerCase() : '?'}`, d:true},
+    {t:`answer: ${b.resp ? R(b.resp).label.toLowerCase() : '?'}`, d:true}];
+  if(b.check) lines.push({t:`verdict: ${b.check.verdict.toLowerCase()}`});
   if(revealed()){
-    lines.push({t:`actual p = ${m.dist[it.id].toFixed(2)}`});
+    lines.push({t:`actual likelihood: ${pct(m.dist[it.id])}`});
     if(it.id===m.intent) lines.push({t:'◆ what they did', b:true});
     if(S.result.read===it.id) lines.push({t:'▶ you played this', b:true});
   }
-  lines.push({t: open ? '− collapse' : '+ expand', tg:true});
-  return {id:it.id, kind:'intent', lines,
-    edge: revealed() ? `p = ${m.dist[it.id].toFixed(2)}` : (b.like ? LIKE[b.like].l.toLowerCase() : ''),
-    actual: revealed() && it.id===m.intent, played: revealed() && S.result.read===it.id,
+  return {id:it.id, kind:'intent', lines, actual: revealed() && it.id===m.intent, played: revealed() && S.result.read===it.id,
     children: open ? answerKids(it) : []};
 }
 function answerKids(it){
   const b = S.plan.branches[it.id], m = S.moment;
-  if(!b.resp) return [{id:it.id+':none', kind:'none', parent:it.id, edge:'you answer',
-    lines:[{t:'no answer yet', b:true},{t:'plan it in the panel'},{t:'below the tree'}]}];
+  if(!b.resp) return [{id:it.id+':none', kind:'none', parent:it.id, lines:[{t:'No answer yet', b:true},{t:'plan it in the panel below', d:true}]}];
   const known = !!b.check || revealed();
   const ev = branchEval(it.id, b.resp, m), mine = ev.rows.find(r=>r.id===b.resp);
-  const ans = {id:it.id+':ans', kind:'ans', parent:it.id, edge:'you answer', lines:[{t:`you: ${R(b.resp).label.toLowerCase()}`, b:true}], children:[]};
+  const ans = {id:it.id+':ans', kind:'ans', parent:it.id, lines:[{t:`You: ${R(b.resp).label.toLowerCase()}`, b:true}], children:[]};
   if(known){
-    ans.lines.push({t:`rank = ${ev.rank} / 9`},{t:`value = ${sgn(mine.v)}`},{t:`lights = ${lightsArr(mine.pr)}`});
-    ans.children = ev.beats.filter(x=>x.id!==it.id).slice(0,2).map(x => ({id:it.id+':beat:'+x.id, kind:'beat', parent:it.id, edge:'beaten by',
-      lines:[{t:`they: ${I(x.id).label.toLowerCase()}`, b:true},{t:`value = ${sgn(x.v)}`},{t:`lights = ${lightsArr(x.pr)}`}]}));
-    if(!ans.children.length) ans.children = [{id:it.id+':safe', kind:'beat', parent:it.id, edge:'if you misread',
-      lines:[{t:'nothing punishes', b:true},{t:'this badly from here'}]}];
-  } else ans.lines.push({t:'unchecked'},{t:'press check with coach'});
+    ans.lines.push({t:`rank ${ev.rank} of 9 · value ${sgn(mine.v)}`, d:true},{t:`lights ${lightsArr(mine.pr)}`, d:true});
+    ans.children = ev.beats.filter(x=>x.id!==it.id).slice(0,2).map(x => ({id:it.id+':beat:'+x.id, kind:'beat', parent:it.id,
+      lines:[{t:I(x.id).label, b:true},{t:`your value ${sgn(x.v)}`, d:true},{t:`lights ${lightsArr(x.pr)}`, d:true}]}));
+    if(!ans.children.length) ans.children = [{id:it.id+':safe', kind:'beat', parent:it.id, lines:[{t:'Nothing punishes it', b:true},{t:'badly if you misread', d:true}]}];
+  } else ans.lines.push({t:'not checked yet', d:true});
   const kids = [ans];
   if(known && ev.best!==b.resp){
     const br = ev.rows[0];
-    kids.push({id:it.id+':best', kind:'best', parent:it.id, edge:'best answer',
-      lines:[{t:`best: ${R(br.id).label.toLowerCase()}`, b:true},{t:'rank = 1 / 9'},{t:`value = ${sgn(br.v)}`},{t:`lights = ${lightsArr(br.pr)}`}]});
+    kids.push({id:it.id+':best', kind:'best', parent:it.id,
+      lines:[{t:`Best: ${R(br.id).label.toLowerCase()}`, b:true},{t:`rank 1 of 9 · value ${sgn(br.v)}`, d:true},{t:`lights ${lightsArr(br.pr)}`, d:true}]});
   }
   return kids;
 }
 function layoutTree(root){
-  const levels = [];
   (function measure(n, d){
-    n.d = d; n.h = PADY*2 + n.lines.length*LH; n.children = n.children || [];
+    n.d = d; n.h = PADY*2 + n.lines.length*LH + (n.kind==='best' ? 2 : 0); n.children = n.children || [];
     n.children.forEach(k => measure(k, d+1));
-    n.cw = n.children.reduce((a,k)=>a+k.w,0) + HG*Math.max(0, n.children.length-1);
-    n.w = Math.max(NW, n.cw); levels[d] = Math.max(levels[d]||0, n.h);
+    const ch = n.children.reduce((a,k)=>a+k.sh,0) + VG*Math.max(0, n.children.length-1);
+    n.sh = Math.max(n.h, ch);
   })(root, 0);
-  const ys = []; let y = 4; levels.forEach((h,d) => { ys[d] = y; y += h + VG; });
-  (function place(n, x){
-    n.cx = x + n.w/2; n.y = ys[n.d];
-    let cx = x + (n.w - n.cw)/2; n.children.forEach(k => { place(k, cx); cx += k.w + HG; });
-  })(root, 0);
-  return {W: root.w, H: y - VG + 8};
-}
-function zoomFor(W){
-  if(S.zoom !== 'fit') return S.zoom;
-  const cw = ($('#treeScroll').clientWidth || 800) - 26;
-  return clamp(cw / W, .75, 1);
+  (function place(n, y){
+    n.y = y; n.x = COLX[n.d];
+    let cy = y; n.children.forEach(k => { place(k, cy); cy += k.sh + VG; });
+  })(root, HEADH);
+  return {W: COLX[COLX.length-1] + COLW[COLW.length-1] + 6, H: HEADH + root.sh + 8};
 }
 function renderTree(){
   if(!S.moment) return;
-  const show = S.style==='tree' || revealed();
-  $('#treeCard').hidden = !show;
-  if(!show) return;
   $('#treeIntro').innerHTML = revealed()
-    ? 'Revealed. Each branch shows its real likelihood <b>p</b>. <b>◆</b> marks what they did, <b>▶</b> and a dashed outline mark the branch you played. Keep changing answers and checking them to study the position.'
-    : 'Click a branch to expand it and plan it in the panel below: how likely it is, your answer, your reasoning. <b>Check with coach</b> grades the branch and grows it: your answer, what beats it, and the best answer. <b>Play this branch</b> commits your read.';
-  const root = buildTree(), {W, H} = layoutTree(root), z = zoomFor(W);
+    ? 'Revealed. Each branch now shows how likely it really was. ◆ marks what they did; ▶ and a dashed outline mark the branch you played. Keep changing answers and checking them to study the position.'
+    : 'Read left to right. Click an action to expand it and plan it in the panel below: how likely it is, your answer, your reasoning. <b>Check with coach</b> grades your answer and adds what beats it and the best answer. <b>Play this branch</b> commits your read.';
+  const root = buildTree(), {W, H} = layoutTree(root);
   const nodes = [], edges = [];
   (function walk(n){ nodes.push(n); n.children.forEach(k => { edges.push([n,k]); walk(k); }); })(root);
+  const ANCH = 16;
   const svg = edges.map(([p,k]) => {
-    const x1 = p.cx, y1 = p.y + p.h, x2 = k.cx, y2 = k.y - 2, mx = (x1+x2)/2, my = (y1+y2)/2;
-    const dir = Math.sign(x2 - x1), anchor = dir>0 ? 'start' : dir<0 ? 'end' : 'start';
-    const lx = mx + (dir>0 ? 8 : dir<0 ? -8 : 7);
-    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#000" stroke-width="1.2" marker-end="url(#tarr)"/>` +
-      (k.edge ? `<text x="${lx}" y="${my+4}" text-anchor="${anchor}" font-size="12.5" fill="#000" stroke="#fff" stroke-width="4" paint-order="stroke" font-family="IBM Plex Sans, system-ui, sans-serif">${esc(k.edge)}</text>` : '');
+    const x1 = p.x + COLW[p.d], y1 = p.y + ANCH, x2 = k.x - 2, y2 = k.y + ANCH, bx = x1 + CGAP/2;
+    return `<path d="M${x1},${y1} H${bx} V${y2} H${x2}" fill="none" stroke="#000" stroke-width="1.2" ${k.kind==='beat'?'stroke-dasharray="4 3"':''} marker-end="url(#tarr)"/>`;
   }).join('');
-  const sel = S.sel;
-  const boxes = nodes.map(n => `<button type="button" class="tn ${n.kind} ${sel===n.id || (n.kind!=='intent' && n.kind!=='root' && false) ? 'sel' : ''} ${n.actual?'actual':''} ${n.played?'played':''}" data-node="${n.id}" data-kind="${n.kind}" data-parent="${n.parent||''}" style="left:${n.cx-NW/2}px;top:${n.y}px;width:${NW}px;height:${n.h}px" aria-label="${esc(n.lines.map(l=>l.t).join(', '))}">${n.lines.map(l=>`<span class="${l.b?'b':''}${l.tg?' tg':''}">${esc(l.t)}</span>`).join('')}</button>`).join('');
-  $('#tree').innerHTML = `<div class="tz" style="width:${W*z}px;height:${H*z}px"><div class="tzi" style="width:${W}px;height:${H}px;transform:scale(${z})">
+  const heads = COLS.map((c,i) => `<div class="colhd" style="left:${COLX[i]}px;width:${COLW[i]}px">${c}</div>`).join('');
+  const boxes = nodes.map(n => `<button type="button" class="tn ${n.kind} ${S.sel===n.id?'sel':''} ${n.actual?'actual':''} ${n.played?'played':''}" data-node="${n.id}" data-kind="${n.kind}" data-parent="${n.parent||''}" style="left:${n.x}px;top:${n.y}px;width:${COLW[n.d]}px;height:${n.h}px" aria-label="${esc(n.lines.map(l=>l.t).join(', '))}${n.kind==='intent' ? (S.open.has(n.id)?', expanded':', collapsed') : ''}">${n.lines.map(l => l.b ? `<span class="b"><span>${esc(l.t)}</span>${l.g ? `<i aria-hidden="true">${l.g}</i>` : ''}</span>` : `<span class="${l.d?'d':''}">${esc(l.t)}</span>`).join('')}</button>`).join('');
+  $('#tree').innerHTML = `<div class="tz" style="width:${W}px;height:${H}px">
     <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><defs><marker id="tarr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#000"/></marker></defs>${svg}</svg>
-    ${boxes}</div></div>`;
-  $('#zoomLbl').textContent = S.zoom==='fit' ? `Fit · ${Math.round(z*100)}%` : `${Math.round(z*100)}%`;
-  const sc = $('#treeScroll'), target = nodes.find(n => n.id===(S.sel||'root')) || root;
-  const tx = target.cx*z, inner = sc.clientWidth - 26, tzLeft = Math.max(0, (inner - W*z)/2);
-  if(tx + tzLeft < sc.scrollLeft + 60 || tx + tzLeft > sc.scrollLeft + sc.clientWidth - 60) sc.scrollLeft = Math.max(0, tx + tzLeft - sc.clientWidth/2);
+    ${heads}${boxes}</div>`;
   renderEditor();
   $('#reviewOut').textContent = S.plan.review || '';
 }
@@ -817,12 +661,12 @@ function renderEditor(){
   const ed = $('#treeEd'), m = S.moment;
   if(S.sel==='root' || !S.sel){
     const press = revealed()
-      ? `<div><div class="edlbl">What was pushing ${esc(P().short)}</div><ul class="press">${m.why.map(w=>`<li>${esc(w)}</li>`).join('') || '<li>No strong situational pull. Style alone.</li>'}</ul></div>` : '';
-    ed.innerHTML = `<div class="edh"><b>Root · the situation</b><small>${BANDS[m.band].label} · ${scoreLine(m)} · ${fmt(m.clock)} · your back foot ${m.myBack.toFixed(1)} m</small></div>
+      ? `<div><div class="lbl">What was pushing ${esc(P().short)}</div><ul class="press">${m.why.map(w=>`<li>${esc(w)}</li>`).join('') || '<li>No strong situational pull. Style alone.</li>'}</ul></div>` : '';
+    ed.innerHTML = `<div class="edh"><b>Situation</b><small>${BANDS[m.band].label} · ${scoreLine(m)} · ${fmt(m.clock)} · your back foot ${m.myBack.toFixed(1)} m from the end</small></div>
       <label class="fld">Your read of the moment
         <textarea data-root="1" placeholder="What matters most here? What do they want? What must you not allow? What have they shown you so far?">${esc(S.plan.root)}</textarea></label>
       ${press}
-      <p class="note">Select a branch in the tree to plan your answer to it.</p>`;
+      <p class="note" style="margin:0">Click an action in the tree to plan your answer to it.</p>`;
     return;
   }
   const id = S.sel, it = I(id), b = S.plan.branches[id];
@@ -834,39 +678,31 @@ function renderEditor(){
     fb = `<div class="fb"><b>${c.verdict}.</b> ${esc(R(b.resp).label)} ranks ${c.rank} of 9 against ${esc(it.label.toLowerCase())} here.${c.best!==b.resp ? ` Best: ${esc(R(c.best).label)}.` : ''}
       <div class="ex ${b.coach ? '' : 'wait'}" data-coach="${id}">${esc(b.coach || 'Your coach is reading your reasoning…')}</div></div>`;
   }
-  const principle = (b.check || revealed()) ? `<p class="note"><b>Principle.</b> ${esc(PRINCIPLE[id])}</p>` : '';
-  ed.innerHTML = `<div class="edh"><b>Branch · they: ${esc(it.label.toLowerCase())}</b><small>${esc(it.sub)}${revealed() ? ` · actual p = ${m.dist[id].toFixed(2)}${id===m.intent ? ' · what they did' : ''}` : ''}</small></div>
+  const principle = (b.check || revealed()) ? `<p class="note" style="margin:0"><b>Principle.</b> ${esc(PRINCIPLE[id])}</p>` : '';
+  ed.innerHTML = `<div class="edh"><b>If ${esc(P().short)} goes for ${esc(it.label.toLowerCase())}</b><small>${esc(it.sub)}${revealed() ? ` · actual likelihood ${pct(m.dist[id])}${id===m.intent ? ' · this is what they did' : ''}` : ''}</small></div>
     <div class="fld">How likely is this right now?<div class="seg" data-likeseg="${id}">${likeSeg}</div></div>
-    <label class="fld">If ${esc(P().short)} does this, I…<select class="sel" data-resp="${id}">${opts}</select></label>
+    <label class="fld">Your answer<select class="sel" data-resp="${id}">${opts}</select></label>
     <label class="fld">Why<textarea data-why="${id}" placeholder="Distance, timing, what you have seen from ${esc(P().obj)}, what the score and clock demand…">${esc(b.why)}</textarea></label>
-    <div class="bact">
-      <button class="bwbtn o" type="button" data-check="${id}" ${b.resp?'':'disabled'}>Check with coach</button>
-      <button class="bwbtn" type="button" data-play="${id}" ${b.resp && !revealed() ? '' : 'disabled'}>Play this branch</button>
-      <button class="bwbtn o" type="button" data-sel="root">Back to root</button>
+    <div class="row">
+      <button class="btn o" type="button" data-check="${id}" ${b.resp?'':'disabled'}>Check with coach</button>
+      <button class="btn" type="button" data-play="${id}" ${b.resp && !revealed() ? '' : 'disabled'}>Play this branch</button>
+      <button class="btn o" type="button" data-sel="root">Back to situation</button>
     </div>
     ${fb}${principle}`;
 }
 function refreshBranch(){ renderTree(); }
 
-/* ================= Rendering: quick mode, result, stats ================= */
-function renderQuick(){
-  const show = S.style==='quick' && !revealed() && !!S.moment;
-  $('#decide').hidden = !show;
-  if(!show) return;
-  $('#readOpts').innerHTML = INTENTS.map((x,i)=>`<button type="button" class="opt ${S.read===x.id?'sel':''}" data-qread="${x.id}"><kbd>${i+1}</kbd><div><b>${x.label}</b><span>${x.sub}</span></div></button>`).join('');
-  $('#respOpts').innerHTML = RESPONSES.map((x,i)=>`<button type="button" class="opt" data-qresp="${x.id}" ${S.read?'':'disabled'}><kbd>${i+1}</kbd><div><b>${x.label}</b><span>${x.sub}</span></div></button>`).join('');
-  $$('#conf button').forEach(b=>b.classList.toggle('on', b.dataset.c===S.conf));
-}
+/* ================= Rendering: result & stats ================= */
 function renderResult(res){
   const m = S.moment, p = P();
   $('#result').hidden = false;
   $('#resEx').textContent = `Exchange ${res.ex}`;
-  const c = $('#call'); c.textContent = res.call; c.className = 'call ' + ({me:'me',opp:'opp',dbl:'dbl'}[res.callCls] || 'none');
+  $('#call').textContent = res.call;
   $('#callSub').textContent = `${p.short} was going for ${I(m.intent).label.toLowerCase()}. You read ${res.read ? I(res.read).label.toLowerCase() : 'nothing'} and chose ${R(res.resp).label.toLowerCase()}. ${res.sub}`;
-  const gcls = {'Best choice':'good','Sound':'good','Risky':'warn','Error':'bad','Frozen':'bad'}[res.grade];
+  const strong = ['Error','Risky'].includes(res.grade);
   $('#verdicts').innerHTML = [
-    `<span class="chip ${res.readOk?'good':res.famOk?'warn':'bad'}">Read: <b>${res.readOk?'exact':res.famOk?'right family':'wrong'}</b></span>`,
-    `<span class="chip ${gcls}">Decision: <b>${res.grade}</b></span>`,
+    `<span class="chip ${res.readOk?'k':''}">Read: <b>${res.readOk?'exact':res.famOk?'right family':'wrong'}</b></span>`,
+    `<span class="chip ${strong?'':'k'}">Decision: <b>${res.grade}</b></span>`,
     `<span class="chip">Best vs. what was likely: <b>${R(res.best).label}</b></span>`,
     `<span class="chip">Best vs. what they did: <b>${R(res.bestAct).label}</b></span>`
   ].join('');
@@ -880,15 +716,15 @@ function renderStats(){
   const good = L.filter(x=>['Best choice','Sound'].includes(x.res.grade)).length;
   $('#stRead').textContent = pct(ok/n); $('#stFam').textContent = pct(fam/n); $('#stDec').textContent = pct(good/n);
   const byC = {low:[0,0], med:[0,0], high:[0,0]};
-  L.forEach(x => { if(!x.res.frozen && byC[x.res.conf]){ byC[x.res.conf][1]++; if(x.res.readOk) byC[x.res.conf][0]++; } });
+  L.forEach(x => { if(byC[x.res.conf]){ byC[x.res.conf][1]++; if(x.res.readOk) byC[x.res.conf][0]++; } });
   const part = (k,lbl) => byC[k][1] ? `${lbl} ${pct(byC[k][0]/byC[k][1])} (${byC[k][1]})` : null;
-  $('#calib').textContent = 'Accuracy by confidence: ' + ([part('low','hunch'),part('med','possible'),part('high','certain')].filter(Boolean).join(' · ') || '–');
+  $('#calib').textContent = 'Accuracy by your likelihood mark: ' + ([part('high','likely'),part('med','possible'),part('low','unlikely or unmarked')].filter(Boolean).join(' · ') || '–');
   let checked = 0, opt = 0;
   L.forEach(x => { if(x.plan) Object.values(x.plan.branches).forEach(b => { if(b.check){ checked++; if(['Optimal','Sound'].includes(b.check.verdict)) opt++; } }); });
-  $('#treeStat').textContent = checked ? `Tree branches checked: ${checked}, optimal or sound ${pct(opt/checked)}.` : '';
+  $('#treeStat').textContent = checked ? `Branches checked: ${checked}. Optimal or sound: ${pct(opt/checked)}.` : '';
   const tot = Object.values(S.myHist).reduce((a,b)=>a+b,0);
-  const rows = Object.entries(S.myHist).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `<div class="trow"><span class="nm">${R(k).label}</span><div class="bar"><i style="width:${v/tot*100}%;background:var(--muted)"></i></div><span class="num">${v}</span></div>`).join('');
-  $('#habits').innerHTML = `<div class="label">Your habits this session</div>${rows}`;
+  const rows = Object.entries(S.myHist).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `<div class="trow"><span>${R(k).label}</span><div class="bar"><i style="width:${v/tot*100}%"></i></div><span class="num">${v}</span></div>`).join('');
+  $('#habits').innerHTML = `<div class="lbl" style="margin-top:6px">Your habits this session</div>${rows}`;
 }
 
 /* ================= Claude role-play ================= */
@@ -1109,42 +945,24 @@ ${boutLogText().split('\n').slice(-8).join('\n') || 'none yet'}`;
 });
 
 /* ================= Flow ================= */
-let timerRAF = 0, timerEnd = 0;
-function startTimer(){
-  stopTimer();
-  if(!S.timed || S.style!=='quick'){ $('#timer').hidden = true; $('#timerLbl').textContent = ''; return; }
-  $('#timer').hidden = false; timerEnd = performance.now() + S.timed*1000;
-  const tick = () => {
-    const left = timerEnd - performance.now();
-    $('#timerBar').style.width = clamp(left/(S.timed*1000),0,1)*100 + '%';
-    $('#timerLbl').textContent = (Math.max(0,left)/1000).toFixed(1) + ' s';
-    if(left <= 0){ stopTimer(); commit(S.read, 'hold', true); return; }
-    timerRAF = requestAnimationFrame(tick);
-  };
-  timerRAF = requestAnimationFrame(tick);
-}
-function stopTimer(){ cancelAnimationFrame(timerRAF); timerRAF = 0; }
 function nextMoment(useLive){
   if(S.over) return;
   S.result = null; S.read = null; $('#result').hidden = true;
   const keepPlan = S.mode==='drill' && S.plan;
   S.moment = makeMoment();
   if(!keepPlan){ S.plan = emptyPlan(); S.open = new Set(); S.sel = 'root'; }
-  else { S.plan.review = ''; }
-  renderBoard(); renderMoment(); renderTree(); renderQuick();
+  else S.plan.review = '';
+  renderBoard(); renderMoment(); renderTree();
   if(useLive) narrate(S.moment); else { $('#narr').textContent = templateNarration(S.moment); $('#narr').classList.remove('wait'); }
-  startTimer();
 }
-function commit(readId, respId, frozen){
+function commit(readId, respId){
   if(S.result || !S.moment) return;
-  stopTimer(); if(liveCtl){ liveCtl.abort(); liveCtl = null; $('#narr').classList.remove('wait'); }
-  if(S.style==='tree' && readId){ const lk = S.plan.branches[readId].like; S.conf = lk===3 ? 'high' : lk===2 ? 'med' : 'low'; }
-  const res = resolve(readId || null, respId, !!frozen);
+  if(liveCtl){ liveCtl.abort(); liveCtl = null; $('#narr').classList.remove('wait'); }
+  const lk = S.plan.branches[readId].like; S.conf = lk===3 ? 'high' : lk===2 ? 'med' : 'low';
+  const res = resolve(readId, respId, false);
   S.result = res;
-  if(res.read) S.open.add(res.read);
-  S.open.add(S.moment.intent);
-  S.sel = S.moment.intent;
-  renderBoard(); renderResult(res); renderTree(); renderQuick(); renderStats();
+  S.open.add(res.read); S.open.add(S.moment.intent); S.sel = S.moment.intent;
+  renderBoard(); renderResult(res); renderTree(); renderStats();
   voices(S.moment, res);
   $('#nextBtn').innerHTML = S.over ? 'See bout result' : 'Next exchange<kbd>N</kbd>';
   $('#result').scrollIntoView({behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
@@ -1152,13 +970,13 @@ function commit(readId, respId, frozen){
 function showEnd(){
   $('#boutEnd').hidden = false; $('#result').hidden = true;
   const win = S.winner==='me';
-  const c = $('#endCall'); c.textContent = win ? `Victoire · ${S.me}–${S.opp}` : `Défaite · ${S.me}–${S.opp}`; c.className = 'call ' + (win?'me':'opp');
+  $('#endCall').textContent = win ? `Victoire · ${S.me}–${S.opp}` : `Défaite · ${S.me}–${S.opp}`;
   $('#endSub').textContent = `${win ? 'You beat' : 'You lost to'} ${P().name}.`;
   $('#endSummary').textContent = summaryText();
   $('#boutEnd').scrollIntoView({block:'start'});
 }
 function readSetup(){
-  S.style = $('#style').value; S.mode = $('#mode').value; S.personaId = $('#persona').value; S.format = $('#format').value; S.timed = parseFloat($('#timed').value)||0;
+  S.mode = $('#mode').value; S.personaId = $('#persona').value; S.format = $('#format').value;
   if(S.mode==='drill'){
     const t = FORMATS[S.format].target;
     S.drill = {me:clamp(parseInt($('#dMe').value)||0,0,t-1), opp:clamp(parseInt($('#dOpp').value)||0,0,t-1),
@@ -1175,9 +993,8 @@ function startSession(useLive){
 }
 
 /* ================= Events ================= */
-$('#persona').innerHTML = PERSONAS.map(p=>`<option value="${p.id}">${p.name} · ${p.hand.toLowerCase()} · ${p.style.split(' who')[0].toLowerCase()}</option>`).join('');
+$('#persona').innerHTML = PERSONAS.map(p=>`<option value="${p.id}">${p.name} · ${p.style.split(' who')[0].toLowerCase()}</option>`).join('');
 $('#mode').addEventListener('change', () => { $('#drillBox').hidden = $('#mode').value!=='drill'; });
-$('#style').addEventListener('change', () => { S.style = $('#style').value; if(S.moment && !S.result){ renderTree(); renderQuick(); startTimer(); } });
 $('#startBtn').addEventListener('click', () => startSession(true));
 $('#againBtn').addEventListener('click', () => startSession(true));
 $('#nextBtn').addEventListener('click', () => { if(S.over) showEnd(); else nextMoment(true); });
@@ -1185,7 +1002,6 @@ $('#deepBtn').addEventListener('click', deepAnalysis);
 $('#debriefBtn').addEventListener('click', fullDebrief);
 $('#reviewBtn').addEventListener('click', reviewTree);
 $('#liveToggle').addEventListener('change', setLive);
-$('#timed').addEventListener('change', () => { S.timed = parseFloat($('#timed').value)||0; });
 $('#expandAll').addEventListener('click', () => { INTENTS.forEach(x => S.open.add(x.id)); renderTree(); });
 $('#collapseAll').addEventListener('click', () => { S.open.clear(); renderTree(); });
 
@@ -1208,37 +1024,24 @@ tcard.addEventListener('click', e => {
       if(S.sel===id){ if(S.open.has(id)) S.open.delete(id); else S.open.add(id); }
       else { S.sel = id; S.open.add(id); }
     } else S.sel = node.dataset.parent;
-    renderTree(); return;
+    renderTree();
+    const f = document.querySelector(`[data-node="${CSS.escape(id)}"]`); if(f) f.focus({preventScroll:true});
+    if(kind!=='root'){ const ed = $('#treeEd').getBoundingClientRect(); if(ed.top > innerHeight - 120) $('#treeEd').scrollIntoView({block:'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'}); }
+    return;
   }
   const like = e.target.closest('[data-like]');
   if(like){ const id = like.closest('[data-likeseg]').dataset.likeseg; const b = S.plan.branches[id]; const v = +like.dataset.like; b.like = b.like===v ? 0 : v; renderTree(); return; }
   const chk = e.target.closest('[data-check]'); if(chk && !chk.disabled){ checkBranch(chk.dataset.check); return; }
-  const play = e.target.closest('[data-play]'); if(play && !play.disabled){ const id = play.dataset.play; commit(id, S.plan.branches[id].resp, false); return; }
-  const sel = e.target.closest('[data-sel]'); if(sel){ S.sel = sel.dataset.sel; renderTree(); return; }
-  const zm = e.target.closest('[data-zoom]');
-  if(zm){
-    const W = layoutTree(buildTree()).W, cur = zoomFor(W), a = zm.dataset.zoom;
-    S.zoom = a==='fit' ? 'fit' : clamp(Math.round((cur + (a==='in' ? .15 : -.15))*100)/100, .35, 1.4);
-    renderTree();
-  }
+  const play = e.target.closest('[data-play]'); if(play && !play.disabled){ const id = play.dataset.play; commit(id, S.plan.branches[id].resp); return; }
+  const sel = e.target.closest('[data-sel]'); if(sel){ S.sel = sel.dataset.sel; renderTree(); }
 });
-let rzT = 0; addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { if(S.zoom==='fit' && S.moment) renderTree(); }, 150); });
-$('#conf').addEventListener('click', e => { const b = e.target.closest('button'); if(b){ S.conf = b.dataset.c; renderQuick(); } });
-$('#readOpts').addEventListener('click', e => { const b = e.target.closest('[data-qread]'); if(b){ S.read = b.dataset.qread; renderQuick(); } });
-$('#respOpts').addEventListener('click', e => { const b = e.target.closest('[data-qresp]'); if(b && !b.disabled) commit(S.read, b.dataset.qresp, false); });
 addEventListener('keydown', e => {
   const tag = (e.target.tagName||'');
   if(tag==='INPUT' || tag==='SELECT' || tag==='TEXTAREA' || e.metaKey || e.ctrlKey || e.altKey) return;
-  if((e.key==='n' || e.key==='N') && S.result){ if(S.over) showEnd(); else nextMoment(true); return; }
-  if(S.style!=='quick' || S.result || !S.moment) return;
-  if(/^[1-9]$/.test(e.key)){
-    const i = +e.key - 1;
-    if(!S.read){ S.read = INTENTS[i].id; renderQuick(); } else commit(S.read, RESPONSES[i].id, false);
-    e.preventDefault();
-  } else if(e.key==='Backspace' && S.read){ S.read = null; renderQuick(); e.preventDefault(); }
+  if((e.key==='n' || e.key==='N') && S.result){ if(S.over) showEnd(); else nextMoment(true); }
 });
 
-// Opening state: a real first exchange, ready to work on (built-in narration until you start).
+// Opening state: a real first exchange, ready to work on (built-in narration until you press Start).
 readSetup(); startSession(false);
 })();
 </script>
