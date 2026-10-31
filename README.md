@@ -2,22 +2,18 @@
 
 Browser-based épée training tools. Each one is a single self-contained HTML file.
 
-## Épée Read Room, level 1 (`index.html`)
+## Épée Read Room (`index.html`)
 
-Single actions only. There is no bout, score or clock yet.
+A decision trainer built in levels. Use the Levels menu in the top-right corner to switch between them.
 
-- **Four simple opponents.** Each has one attack, one defence and a preference between them:
-  - Clara, counter-attacker
-  - Pierre, parrier
-  - Rafa, rusher
-  - Lina, line holder
-- **An editable decision tree,** read left to right: Opponent → They do → You answer → Result. You edit everything inside the tree's boxes:
-  - how likely each branch is
-  - your answer
-  - your reasoning
-- **Check** shows the result of your answer against that action and grades it as best, works, or loses. It also shows the better answer, and what happens if you misread and they do the other action instead.
-- **Bet on a branch** to read one exchange. You get a cue that is honest 75% of the time, then the reveal.
-- **Live coach explanations.** When the page is opened as a Claude artifact, Claude explains why your reasoning holds or doesn't.
+- **Level 0 · Ground.** Shows every decision tree you have built, for every fencer, in one view. Each tree lists your answers, reasoning, verdicts and results. Trees are saved in your browser.
+- **Level 1 · Single actions.** Practise against real scouted opponents: Nat, Nawal and Katya, plus any fencer you add yourself. For each opponent:
+  - You edit an expandable tree directly: Opponent → They do → You answer → Result.
+  - **Check** grades your answer. Results draw on your own experience against that fencer where you have given it, and on textbook outcomes otherwise. It also shows what happens if you misread the branch.
+  - **Bet on this** reads one exchange from a cue, which may be honest or faked.
+- **Level 2 · Real bout.** Locked for now.
+
+When the page is opened as a Claude artifact, Claude writes the coach's explanations.
 
 ## Next stage (`next-stage/bout-trainer.html`)
 

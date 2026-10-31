@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one column, black on white. 1) choose a simple opponent, 2) the editable tree (opponent → they do → you answer → result), 3) the exchange reveal. */
+/* Layout: one column, black on white. 1) choose a real opponent (or add one), 2) the editable tree (opponent → they do → you answer → result), 3) the exchange reveal. */
 :root{
   --paper:#ffffff; --ink:#000000; --mid:#555555; --hair:#cccccc; --soft:#f2f2f2;
   --f-display:"Barlow Condensed","Arial Narrow",sans-serif;
@@ -18,7 +18,7 @@ body{font-family:var(--f-body);font-size:15px;line-height:1.5;
   padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:20px 48px}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--ink);outline-offset:3px}
-.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.wrap{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
 .head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:8px 20px;border-bottom:1.5px solid var(--ink);padding-bottom:14px}
 h1{font-family:var(--f-display);font-weight:700;font-size:clamp(30px,5vw,42px);line-height:.95;margin:0;text-transform:uppercase}
 .head p{margin:6px 0 0;color:var(--mid);max-width:72ch}
@@ -28,31 +28,73 @@ h2{margin:0 0 10px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
 h2 em{font-style:normal;font-family:var(--f-mono);letter-spacing:0;text-transform:none;font-weight:400;color:var(--mid)}
 .muted{color:var(--mid)}
 
-.fencers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-@media (max-width:860px){.fencers{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:460px){.fencers{grid-template-columns:1fr}}
-.fc{text-align:left;background:var(--paper);border:1.5px solid var(--ink);border-radius:8px;padding:12px;cursor:pointer;display:grid;gap:4px;align-content:start}
+.fencers{display:grid;grid-template-columns:repeat(auto-fill,180px);gap:8px}
+.fwrap{position:relative}
+.fc{position:relative;text-align:left;background:var(--paper);border:1.5px solid var(--ink);border-radius:8px;padding:8px 10px;cursor:pointer;display:grid;gap:2px;align-content:start;width:180px;height:62px;overflow:hidden}
+.fc .ty{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fdetail{margin-top:8px;border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;position:relative}
+.fdetail dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:2px 14px;font-size:14px;max-width:80ch}
+.fdetail dt{color:var(--mid)}
+.fdetail dd{margin:0}
+.fdetail .del{position:static;margin-top:10px;font-size:12px;background:var(--paper);border:1px solid var(--ink);border-radius:4px;padding:2px 8px;cursor:pointer}
+.hright{display:grid;justify-items:end;gap:8px}
+.levels{position:relative}
+.lvlbtn{background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:6px;padding:7px 12px;font-weight:600;cursor:pointer;font-size:14px;display:flex;gap:10px;align-items:center}
+.lvlbtn i{font-style:normal;font-family:var(--f-mono)}
+.lvlmenu{position:absolute;right:0;top:calc(100% + 6px);z-index:20;background:var(--paper);border:1.5px solid var(--ink);border-radius:8px;min-width:290px;padding:6px;display:grid;gap:4px}
+.lvlmenu[hidden]{display:none}
+.lvlmenu button{text-align:left;background:var(--paper);border:1px solid transparent;border-radius:6px;padding:8px 10px;cursor:pointer;display:grid;gap:1px}
+.lvlmenu button:hover:not(:disabled){border-color:var(--ink)}
+.lvlmenu button.on{background:var(--ink);color:var(--paper)}
+.lvlmenu button.on span{color:#bbbbbb}
+.lvlmenu button:disabled{cursor:not-allowed}
+.lvlmenu b{font-weight:600}
+.lvlmenu span{font-size:12.5px;color:var(--mid)}
+.lvl{display:flex;flex-direction:column;gap:22px}
+.lvl[hidden]{display:none}
+.gsum{display:flex;flex-wrap:wrap;gap:6px 18px;border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;font-size:14px}
+.gsum b{font-family:var(--f-mono);font-weight:500;font-size:18px;margin-right:4px}
+.gblock{display:grid;gap:8px;border-top:1.5px solid var(--ink);padding-top:14px}
+.gtree{grid-template-columns:180px 220px 230px 250px;column-gap:46px;row-gap:12px}
+.gtree .node{font-size:13px;padding:8px 10px;gap:4px}
+.gtree .why{font-size:12.5px;color:var(--mid);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.locked{border:1.5px dashed var(--ink);border-radius:8px;padding:20px;display:grid;gap:10px;max-width:80ch}
+.locked ul{margin:0;padding-left:18px}
+.fc .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.fc .top i{font-style:normal;font-family:var(--f-mono);font-size:13px}
 .fc:hover{background:var(--soft)}
 .fc.on{background:var(--ink);color:var(--paper)}
 .fc.on .muted{color:#bbbbbb}
-.fc b{font-size:16px;font-weight:600}
-.fc .ty{font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.fc b{font-size:15px;font-weight:600}
+.fc .ty{font-size:11.5px;opacity:.75}
 .fc dl{margin:4px 0 0;display:grid;grid-template-columns:auto 1fr;gap:1px 10px;font-size:13.5px}
 .fc dt{opacity:.7}
 .fc dd{margin:0}
+.fc .del,.fwrap .del{position:absolute;bottom:8px;right:8px;font-size:12px;background:transparent;border:1px solid currentColor;border-radius:4px;padding:0 6px;cursor:pointer;color:inherit}
+
+details.add{border:1.5px dashed var(--ink);border-radius:8px;padding:10px 14px;margin-top:10px}
+details.add summary{cursor:pointer;font-weight:600}
+.form{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px 14px;margin-top:12px}
+.form label{display:grid;gap:3px;font-size:12.5px;color:var(--mid)}
+.form input,.form select,.form textarea{background:var(--paper);border:1px solid var(--ink);border-radius:5px;padding:6px 8px;color:var(--ink);font-size:14px;width:100%}
+.form textarea{min-height:52px;resize:vertical}
+.form .wide{grid-column:1 / -1}
+.form fieldset{border:1px solid var(--hair);border-radius:6px;padding:8px 10px;display:grid;gap:8px;margin:0}
+.form legend{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:0 4px}
+.err{color:var(--ink);font-weight:600;font-size:13px}
 
 .ex{border:1.5px solid var(--ink);border-radius:8px;padding:12px 14px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;margin-bottom:14px}
 .ex .cue{font-size:16px}
 .ex .cue b{font-weight:600}
 
 .tscroll{overflow-x:auto;padding:4px 2px 10px}
-.tree{position:relative;display:grid;grid-template-columns:200px 220px 270px 300px;column-gap:56px;row-gap:22px;width:max-content}
+.tree{position:relative;display:grid;grid-template-columns:200px 220px 262px 300px;column-gap:52px;row-gap:22px;width:max-content}
 .tree svg{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
 .colhd{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;border-bottom:1.5px solid var(--ink);padding-bottom:3px;align-self:end}
 .node{position:relative;background:var(--paper);border:1.5px solid var(--ink);border-radius:8px;padding:10px 12px;display:grid;gap:8px;align-content:start;font-size:14px;z-index:1}
 .node .t{font-weight:600}
 .node .s{font-size:13px;color:var(--mid)}
-.node.opp{grid-row:2 / span 2;align-self:center}
+.node.opp{align-self:center}
 .node.actual{border-width:3.5px;padding:8px 10px}
 .node.bet{outline:2px dashed var(--ink);outline-offset:5px}
 .node.result.empty{border-style:dotted;border-width:2px;color:var(--mid)}
@@ -73,7 +115,8 @@ h2 em{font-style:normal;font-family:var(--f-mono);letter-spacing:0;text-transfor
 .row{display:flex;flex-wrap:wrap;gap:6px}
 .res{display:grid;gap:6px}
 .res .big{font-family:var(--f-display);font-weight:700;font-size:22px;text-transform:uppercase;line-height:1}
-.res .misread{border-top:1px dashed var(--ink);padding-top:6px;font-size:13.5px}
+.res .misread{border-top:1px dashed var(--ink);padding-top:6px;font-size:13.5px;display:grid;gap:4px}
+.res .yours{font-size:12.5px;border:1px solid var(--ink);border-radius:4px;padding:1px 6px;justify-self:start}
 .coach{font-size:13.5px;white-space:pre-wrap;border-top:1px solid var(--hair);padding-top:6px}
 .coach.wait{color:var(--mid)}
 .key{font-size:12.5px;color:var(--mid);margin:6px 0 0;max-width:90ch}
@@ -82,6 +125,7 @@ h2 em{font-style:normal;font-family:var(--f-mono);letter-spacing:0;text-transfor
 .reveal .call{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,4.5vw,36px);line-height:1;text-transform:uppercase}
 .reveal p{margin:0;max-width:80ch}
 .log{font-size:13.5px;color:var(--mid)}
+[hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -89,21 +133,87 @@ h2 em{font-style:normal;font-family:var(--f-mono);letter-spacing:0;text-transfor
   <header class="head">
     <div>
       <h1>Épée Read Room</h1>
-      <p>Level 1: single actions. Each opponent has one attack and one defence. Build your tree for that opponent, check every answer, then read one exchange at a time.</p>
+      <p id="lvlDesc">Level 1: single actions against real opponents. Build your tree for one fencer, check every answer, then read one exchange at a time.</p>
     </div>
-    <label class="live"><input type="checkbox" id="liveToggle" checked> <span id="liveText">Coach explanations by Claude</span></label>
+    <div class="hright">
+      <div class="levels">
+        <button type="button" class="lvlbtn" id="lvlBtn" aria-expanded="false" aria-controls="lvlMenu"><span id="lvlName">Level 1 · Single actions</span><i id="lvlCaret">▾</i></button>
+        <div class="lvlmenu" id="lvlMenu" hidden>
+          <button type="button" data-level="0"><b>Level 0 · Ground</b><span>Every tree you have built, for every fencer</span></button>
+          <button type="button" data-level="1"><b>Level 1 · Single actions</b><span>One opponent, one exchange at a time</span></button>
+          <button type="button" data-level="2"><b>Level 2 · Real bout</b><span>Locked: score, clock, piste and a whole bout</span></button>
+        </div>
+      </div>
+      <label class="live"><input type="checkbox" id="liveToggle" checked> <span id="liveText">Coach explanations by Claude</span></label>
+    </div>
   </header>
+
+  <div class="lvl" id="L0" hidden>
+    <section aria-labelledby="g0">
+      <h2 id="g0"><span>Ground · all your decision trees</span></h2>
+      <div class="gsum" id="gSum"></div>
+    </section>
+    <div id="gTrees" style="display:grid;gap:22px"></div>
+  </div>
+
+  <div class="lvl" id="L2" hidden>
+    <section class="locked" aria-labelledby="g2">
+      <h2 id="g2" style="margin:0"><span>Level 2 · Real bout · locked</span></h2>
+      <p style="margin:0">The whole-bout simulation comes next: the same opponents, now inside a real bout.</p>
+      <ul>
+        <li>Score, clock and periods, with the priority minute when tied</li>
+        <li>Piste position and distance: your back foot near the end line changes everything</li>
+        <li>When a double helps or hurts you, depending on the score</li>
+        <li>Opponents who adapt to what you repeat</li>
+        <li>A full debrief of the bout, exchange by exchange</li>
+      </ul>
+      <p class="muted" style="margin:0" id="l2Status"></p>
+    </section>
+  </div>
+
+  <div class="lvl" id="L1">
 
   <section aria-labelledby="h1s">
     <h2 id="h1s"><span>1 · Choose an opponent</span></h2>
     <div class="fencers" id="fencers"></div>
+    <div id="fdetail"></div>
+    <details class="add" id="addBox">
+      <summary>Add a fencer</summary>
+      <form class="form" id="addForm" novalidate>
+        <label>Name<input id="fName" required placeholder="e.g. Nat"></label>
+        <label>Hand<select id="fHand"><option>Right</option><option>Left</option></select></label>
+        <label>Build<input id="fBuild" placeholder="e.g. short but fast"></label>
+        <label>Attack % (rest is defence)<input id="fPct" type="number" min="0" max="100" value="50"></label>
+        <fieldset><legend>Main attack</legend>
+          <label>What exactly<input id="fAtk" placeholder="e.g. beat flèche"></label>
+          <label>Closest type<select id="fAtkT"></select></label>
+          <label>Tell before it<input id="fAtkC" placeholder="e.g. jumps forward"></label>
+        </fieldset>
+        <fieldset><legend>Main defence</legend>
+          <label>What exactly<input id="fDef" placeholder="e.g. parry 8 riposte"></label>
+          <label>Closest type<select id="fDefT"></select></label>
+          <label>Tell before it<input id="fDefC" placeholder="e.g. waits in one place"></label>
+        </fieldset>
+        <fieldset><legend>Sometimes (optional)</legend>
+          <label>What exactly<input id="fVar" placeholder="e.g. flick to hand or foot"></label>
+          <label>Closest type<select id="fVarT"></select></label>
+          <label>How often %<input id="fVarP" type="number" min="0" max="40" value="10"></label>
+        </fieldset>
+        <label>Fakes their tells<select id="fFake"><option value=".85">Rarely</option><option value=".7">Sometimes</option><option value=".55">Often</option></select></label>
+        <label class="wide">What works for you<textarea id="fWorks"></textarea></label>
+        <label class="wide">What gets you hit<textarea id="fHurts"></textarea></label>
+        <label class="wide">Other notes<textarea id="fNotes"></textarea></label>
+        <div class="wide row"><button class="btn" type="submit">Add fencer</button><span class="err" id="fErr" aria-live="polite"></span></div>
+        <p class="wide muted" style="margin:0;font-size:12.5px">Results use the closest type's textbook outcomes. Fencers you add are kept in this browser; tell Claude to build them in permanently with their own results.</p>
+      </form>
+    </details>
   </section>
 
   <section aria-labelledby="h2s">
     <h2 id="h2s"><span>2 · Your decision tree</span><em id="exNo"></em></h2>
     <div class="ex" id="exBox"></div>
     <div class="tscroll" id="tscroll"><div class="tree" id="tree"></div></div>
-    <p class="key">Edit the tree directly: mark how likely each branch is, pick your answer and write why. <b>Check</b> shows the result and what happens if you misread. <b>Bet on this</b> commits your read for this exchange. Your tree is kept for each opponent.</p>
+    <p class="key">Edit the tree directly: mark how likely each branch is, pick your answer and write why. <b>Check</b> shows the result, what happens if you misread, and whether it comes from your own experience against this fencer. <b>Bet on this</b> commits your read for this exchange.</p>
   </section>
 
   <section class="reveal" id="reveal" hidden aria-live="polite">
@@ -114,6 +224,7 @@ h2 em{font-style:normal;font-family:var(--f-mono);letter-spacing:0;text-transfor
   </section>
 
   <p class="log" id="log"></p>
+  </div>
 </div>
 
 <script>
@@ -121,131 +232,200 @@ h2 em{font-style:normal;font-family:var(--f-mono);letter-spacing:0;text-transfor
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-/* ---------- Actions ---------- */
-// What the opponent can do
-const ACT = {
-  attack:  {label:'Simple attack',  sub:'Lunge or flèche, no feint', cue:'Weight shifting onto the front leg'},
-  feint:   {label:'Feint attack',   sub:'Feint, then disengage around your parry', cue:'Point drawing small circles at your guard'},
-  beat:    {label:'Beat attack',    sub:'Knock your blade aside, then hit', cue:'Blade drifting toward yours'},
-  counter: {label:'Counter-attack', sub:'Waits, then stop-hits your arm', cue:'Arm loose, weight sitting back, waiting'},
-  parry:   {label:'Parry-riposte',  sub:'Blocks your blade, then hits back', cue:'Guard closed tight, small steps back'},
-  retreat: {label:'Retreat',        sub:'Steps back out of your reach', cue:'Back foot already moving, keeping the gap long'},
-  line:    {label:'Point in line',  sub:'Arm straight, point aimed at you', cue:'Arm straightening, point settling on your chest'}
-};
-// What you can answer with
+/* ---------- Your answers ---------- */
 const ANS = {
-  attack:  {label:'Simple attack',    sub:'Go straight in'},
-  feint:   {label:'Feint attack',     sub:'Show a threat, go around their parry'},
-  beat:    {label:'Beat attack',      sub:'Knock their blade, then hit'},
-  counter: {label:'Counter-attack',   sub:'Stop-hit their arm as they come'},
-  parry:   {label:'Parry-riposte',    sub:'Block, then hit back'},
-  retreat: {label:'Retreat',          sub:'Step out of reach'},
-  second:  {label:'Second intention', sub:'Fake attack to draw their action, then hit it'}
+  straight: {label:'Straight attack',            sub:'Lunge straight to arm or body'},
+  feint:    {label:'Feint attack',               sub:'Feint, disengage around the parry'},
+  beat:     {label:'Beat attack',                sub:'Knock the blade, then hit'},
+  fleche:   {label:'Straight flèche',            sub:'Explosive run, straight line'},
+  fleche6:  {label:'Flèche in six opposition',   sub:'Off-tempo, closing the line'},
+  intoPrep: {label:'Attack into preparation',    sub:'Hit their step, to the arm'},
+  counter:  {label:'Counter-attack to arm',      sub:'Stop-hit as they come'},
+  parry4:   {label:'Parry 4 riposte',            sub:'Wait, take the blade in 4, riposte'},
+  parry6:   {label:'Parry 6 riposte',            sub:'Wait, take the blade in 6, riposte'},
+  retreat:  {label:'Retreat',                    sub:'Step out of reach'},
+  second:   {label:'Second intention',           sub:'Fake to draw their action, then hit it'}
 };
-// Result of YOUR answer (row) against THEIR action (column): you | them | double | none, with the reason.
+
+/* ---------- Opponent action types: textbook result of each of your answers ---------- */
 const R = (r, why) => ({r, why});
-const TABLE = {
-  attack: {
-    attack:R('double','Both attack at once. In épée both lights go on.'),
-    feint:R('you','You go straight in while they spend time on the feint.'),
-    beat:R('you','Your attack lands while they are still looking for your blade.'),
-    counter:R('them','Your arm comes forward into their stop-hit. The hit to the arm arrives first.'),
-    parry:R('them','A simple attack is exactly what a parrier wants. They parry and riposte.'),
-    retreat:R('none','They step out of distance and your attack falls short.'),
-    line:R('them','You run onto their straight arm.')
-  },
-  feint: {
-    attack:R('them','They attack straight into your feint. A feint costs time.'),
-    feint:R('none','Two feints, nobody commits.'),
-    beat:R('you','You disengage around their beat and hit.'),
-    counter:R('them','Your feint is the moment they wait for. They stop-hit your arm.'),
-    parry:R('you','The feint draws their parry, you go around it and hit.'),
-    retreat:R('none','They retreat and your feint finds nothing.'),
-    line:R('them','Feinting into a point in line runs you onto it.')
-  },
-  beat: {
-    attack:R('them','The beat costs time. Their direct attack lands first.'),
-    feint:R('you','You catch their blade during the feint and hit.'),
-    beat:R('none','The blades clash and nothing lands.'),
-    counter:R('you','The beat knocks their waiting arm aside and you hit.'),
-    parry:R('them','They parry your finish after the beat and riposte.'),
-    retreat:R('none','They retreat before you find the blade.'),
-    line:R('you','The beat clears their line and you hit. This is the textbook answer to a line.')
-  },
-  counter: {
-    attack:R('double','You stop-hit a committed attack. Both lights.'),
-    feint:R('you','You stop-hit their arm during the feint.'),
-    beat:R('them','They beat your extended blade aside and hit.'),
-    counter:R('none','You both wait. Nothing happens.'),
-    parry:R('them','They take your extended blade with the parry and riposte.'),
-    retreat:R('none','They retreat and there is nothing to stop-hit.'),
-    line:R('double','Two straight arms. Both lights.')
-  },
-  parry: {
-    attack:R('you','You parry their simple attack and riposte.'),
-    feint:R('them','Their feint draws your parry and they go around it.'),
-    beat:R('them','Their beat opens your guard before you can parry.'),
-    counter:R('none','You both wait. Nothing happens.'),
-    parry:R('none','You both wait. Nothing happens.'),
-    retreat:R('none','You wait, they retreat. Nothing happens.'),
-    line:R('none','You wait behind your guard, they hold the line. Nothing happens.')
-  },
-  retreat: {
-    attack:R('none','Your retreat takes you out of reach. Their attack falls short.'),
-    feint:R('none','You step away from the feint.'),
-    beat:R('none','You step away before they find your blade.'),
-    counter:R('none','You both move away. Nothing happens.'),
-    parry:R('none','Nothing happens.'),
-    retreat:R('none','You both retreat. Nothing happens.'),
-    line:R('none','You stay out of reach of their point.')
-  },
-  second: {
-    attack:R('them','Your fake attack is too slow against a real one.'),
-    feint:R('none','Two probing actions. Nothing lands.'),
-    beat:R('them','They beat your half-extended blade and hit.'),
-    counter:R('you','Your fake attack draws their stop-hit, you parry it and hit. This is counter-time.'),
-    parry:R('none','They parry your fake attack, but you never committed. Nothing lands.'),
-    retreat:R('none','They retreat before you can draw anything.'),
-    line:R('you','Your fake attack draws their line, you take the blade and hit.')
-  }
+const TYPES = {
+  straightAtk: {label:'Simple attack', off:true, res:{
+    straight:R('double','Two straight attacks at once. Both lights.'), feint:R('them','They attack straight into your feint.'),
+    beat:R('them','Your beat costs time and their attack lands first.'), fleche:R('double','Two straight actions. Both lights.'),
+    fleche6:R('you','Six opposition closes your line; their attack slides off and yours lands.'), intoPrep:R('double','There is no preparation to hit; you meet the attack. Both lights.'),
+    counter:R('double','Your stop-hit meets a committed attack. Both lights.'), parry4:R('you','You parry 4 and riposte.'), parry6:R('you','You parry 6 and riposte.'),
+    retreat:R('none','You step out of reach and the attack falls short.'), second:R('them','Your fake is too slow against a real attack.')}},
+  beatAtk: {label:'Beat attack / beat flèche', off:true, res:{
+    straight:R('you','You go straight in before their beat finds your blade.'), feint:R('you','You disengage around the beat and hit.'),
+    beat:R('none','Blades clash. Nothing lands.'), fleche:R('double','Two flèches meet. Both lights.'),
+    fleche6:R('you','Your opposition keeps their beat off and you hit.'), intoPrep:R('you','You hit their arm on the step before the beat.'),
+    counter:R('them','They beat your extended arm aside and hit.'), parry4:R('them','The beat clears your parry before it forms.'), parry6:R('them','The beat clears your parry before it forms.'),
+    retreat:R('none','You step away and the attack falls short.'), second:R('them','They beat your half-extended blade and hit.')}},
+  compound: {label:'Compound attack (feint or two-tempo)', off:true, res:{
+    straight:R('you','You attack into their first tempo.'), feint:R('none','Two feints. Nothing lands.'),
+    beat:R('you','You catch their blade during the feint and hit.'), fleche:R('you','You leave during their first tempo and arrive first.'),
+    fleche6:R('you','You go off-tempo with opposition during their first action.'), intoPrep:R('you','You hit their arm during the first tempo.'),
+    counter:R('you','You stop-hit their feint.'), parry4:R('them','Their first action draws your parry 4, the finish goes around it.'), parry6:R('them','Their first action draws your parry 6, the finish goes around it.'),
+    retreat:R('none','You step away and the attack falls short.'), second:R('none','Both probing. Nothing lands.')}},
+  prepAtk: {label:'Attack with a preparation step', off:true, res:{
+    straight:R('you','You attack while they are still on the step.'), feint:R('them','Your feint gives them time to finish the step and lunge.'),
+    beat:R('you','You beat during their preparation and hit.'), fleche:R('you','You flèche on their step.'),
+    fleche6:R('you','You flèche with opposition on their step.'), intoPrep:R('you','You hit the arm on the step. The textbook answer to a preparation.'),
+    counter:R('you','Their arm is still pulled back; your stop-hit lands first.'), parry4:R('you','You wait for the lunge and parry 4.'), parry6:R('you','You wait for the lunge and parry 6.'),
+    retreat:R('none','You give ground and they keep coming. Nothing yet.'), second:R('them','Your fake is too slow against a real attack.')}},
+  flick: {label:'Flick', off:true, res:{
+    straight:R('double','Your straight attack meets their flick. Both lights.'), feint:R('them','The flick lands during your feint.'),
+    beat:R('none','Your beat meets nothing; their blade is already moving around it.'), fleche:R('double','Both lights.'),
+    fleche6:R('double','Your opposition is on the wrong side of a flick. Both lights.'), intoPrep:R('double','Both lights.'),
+    counter:R('double','Both lights.'), parry4:R('them','The flick whips around your parry.'), parry6:R('them','The flick whips around your parry.'),
+    retreat:R('none','You pull your hand and foot out of reach.'), second:R('them','Your fake gives them the target.')}},
+  counter: {label:'Counter-attack', off:false, res:{
+    straight:R('them','Your arm comes forward into their stop-hit.'), feint:R('them','Your feint is the moment they wait for. Stop-hit.'),
+    beat:R('you','Your beat knocks their waiting arm aside and you hit.'), fleche:R('them','Their counter to your arm lands before your flèche arrives.'),
+    fleche6:R('you','Six opposition closes the line their counter needs.'), intoPrep:R('them','There is no preparation to hit; you walk into their counter.'),
+    counter:R('none','You both wait. Nothing happens.'), parry4:R('none','You both wait. Nothing happens.'), parry6:R('none','You both wait. Nothing happens.'),
+    retreat:R('none','Nothing happens.'), second:R('you','Your fake draws their counter; you parry it and hit. Counter-time.')}},
+  parryRip: {label:'Parry-riposte', off:false, res:{
+    straight:R('them','They parry your simple attack and riposte.'), feint:R('you','Your feint draws the parry; you go around it.'),
+    beat:R('them','They parry your finish after the beat and riposte.'), fleche:R('them','A flèche is still a simple attack: parried and riposted.'),
+    fleche6:R('them','They still find your blade and riposte.'), intoPrep:R('them','There is no preparation to hit; your attack is parried.'),
+    counter:R('none','You both wait. Nothing happens.'), parry4:R('none','You both wait.'), parry6:R('none','You both wait.'),
+    retreat:R('none','Nothing happens.'), second:R('you','Your fake draws their parry-riposte; you parry the riposte and hit.')}},
+  parryCounter: {label:'Parry or counter-attack', off:false, res:{
+    straight:R('them','Your attack is parried or countered.'), feint:R('them','Your feint draws their counter.'),
+    beat:R('none','Your beat clears the counter but the parry stops your finish. Nothing lands.'), fleche:R('them','Parried or countered.'),
+    fleche6:R('you','Opposition closes the line and beats both the parry and the counter.'), intoPrep:R('them','There is no preparation to hit.'),
+    counter:R('none','You both wait.'), parry4:R('none','You both wait.'), parry6:R('none','You both wait.'),
+    retreat:R('none','Nothing happens.'), second:R('you','Your fake draws their action, you take it and hit.')}},
+  retreat: {label:'Retreat / keep distance', off:false, res:{
+    straight:R('none','They step out of distance; your attack falls short.'), feint:R('none','Your feint finds nothing.'), beat:R('none','They are gone before you find the blade.'),
+    fleche:R('none','Your flèche falls short and you have to run past.'), fleche6:R('none','Your flèche falls short.'), intoPrep:R('none','There is nothing to hit.'),
+    counter:R('none','Nothing happens.'), parry4:R('none','Nothing happens.'), parry6:R('none','Nothing happens.'), retreat:R('none','Nothing happens.'), second:R('none','Nothing to draw.')}},
+  line: {label:'Point in line', off:false, res:{
+    straight:R('them','You run onto their straight arm.'), feint:R('them','Feinting into a line runs you onto it.'), beat:R('you','Your beat clears the line and you hit.'),
+    fleche:R('them','You run onto the point.'), fleche6:R('you','Opposition takes the line as you go.'), intoPrep:R('them','You run onto the point.'),
+    counter:R('double','Two straight arms. Both lights.'), parry4:R('none','Nothing happens.'), parry6:R('none','Nothing happens.'), retreat:R('none','Nothing happens.'),
+    second:R('you','Your fake draws the line, you take the blade and hit.')}}
 };
 const VAL = {you:1, double:0, none:0, them:-1};
 const RESULT_TXT = {you:'You score', them:'They score', double:'Double', none:'No touch'};
 const LIKE = ['?', 'Unlikely', 'Possible', 'Likely'];
 
-/* ---------- Simple opponents ---------- */
-const FENCERS = [
-  {id:'clara', name:'Clara', she:'she', type:'Counter-attacker', off:'attack', def:'counter', pDef:.7,
-   desc:'Prefers to wait for you and stop-hit your arm. Attacks straight when she does go.'},
-  {id:'pierre', name:'Pierre', she:'he', type:'Parrier', off:'feint', def:'parry', pDef:.65,
-   desc:'Prefers to sit back and parry. When he attacks, he uses a feint.'},
-  {id:'rafa', name:'Rafa', she:'he', type:'Rusher', off:'attack', def:'retreat', pDef:.3,
-   desc:'Prefers to go first with a long attack. Runs back when you press.'},
-  {id:'lina', name:'Lina', she:'she', type:'Line holder', off:'beat', def:'line', pDef:.6,
-   desc:'Prefers to hold her point in line. Attacks by beating your blade.'}
+/* ---------- Your real opponents (from your notes) ---------- */
+const BUILTIN = [
+  {id:'nat', name:'Nat', hand:'Right', build:'Short but fast', honesty:.85,
+   notes:'Very strong on the blade. Sometimes flicks to hand and foot.',
+   works:'Feint, straight.', hurts:'Her parry 8 then lunge or attack.',
+   branches:[
+     {key:'atk', side:'Attacks', type:'beatAtk', label:'Beat flèche', sub:'Strong beat on your blade, then flèche', p:.5, cue:'She jumps forward'},
+     {key:'flick', side:'Sometimes', type:'flick', label:'Flick to hand or foot', sub:'Whipped point around your guard', p:.1, cue:'Her point goes loose and starts angling around your guard'},
+     {key:'def', side:'Defends', type:'parryRip', label:'Parry 8 riposte', sub:'Takes your blade low in 8, then lunges', p:.4, cue:'She feints at you'}
+   ],
+   over:{
+     atk:{straight:R('you','You go straight in on her jump forward, before her beat finds your blade. This is one of the things that works for you.'),
+          beat:R('them','She is stronger on the blade. Your beat loses the blade fight and her flèche lands.')},
+     def:{straight:R('them','She takes your straight attack in parry 8 and lunges back. This is the touch she usually gets on you.'),
+          feint:R('you','Your feint draws her parry 8; you disengage over it and hit high. This is what works for you.'),
+          fleche:R('them','A straight flèche is still a simple attack: parry 8 catches it and she ripostes.'),
+          beat:R('them','She is stronger on the blade, then takes your finish in 8 and ripostes.')}
+   }},
+  {id:'nawal', name:'Nawal', hand:'Right', build:'Tall, long arms', honesty:.85,
+   notes:'Weird footwork: sometimes just stands there. Very fast extension.',
+   works:'Flèche to the arm when she steps in. Waiting for her attack and taking it with parry 4 riposte.',
+   hurts:'Reacting to her extended-arm feints and being a moment late, so she counters you.',
+   branches:[
+     {key:'atk', side:'Attacks', type:'prepAtk', label:'Step, pull arm, lunge to hand', sub:'Preparation step, then a simple attack to your hand', p:.3, cue:'She steps forward'},
+     {key:'def', side:'Defends', type:'counter', label:'Counter-attack to arm', sub:'Very fast extension to your arm as you come', p:.7, cue:'She waits in one place'}
+   ],
+   over:{
+     atk:{fleche:R('you','You flèche to her arm as she steps in. This is what works for you.'),
+          intoPrep:R('you','You hit her arm on the step-in while it is pulled back.'),
+          parry4:R('you','You wait for her lunge to the hand, take it in parry 4 and riposte. This works for you.')},
+     def:{feint:R('them','You react to her extended-arm feints, arrive a moment late, and her fast extension counters your arm. This is how she usually hits you.'),
+          straight:R('them','Her long arms and fast extension hit your arm before your attack arrives.')}
+   }},
+  {id:'katya', name:'Katya', hand:'Right', build:'Tall and big', honesty:.55,
+   notes:'Strong arm and straight line. Feints to the hand a lot.',
+   works:'Straight flèche with six opposition on an off tempo.',
+   hurts:'Your attacks getting blocked and riposted.',
+   branches:[
+     {key:'atk', side:'Attacks', type:'compound', label:'Straight to hand, then lunge to body', sub:'Threat to your hand first, then a strong lunge to the body', p:.8, cue:'Lots of pressure, coming forward all at once'},
+     {key:'def', side:'Defends', type:'parryCounter', label:'Parry or counter-attack', sub:'Blocks and ripostes, or counters your arm', p:.2, cue:'She feints at your hand'}
+   ],
+   over:{
+     atk:{fleche6:R('you','You leave off-tempo while she pressures, close her straight line with six opposition and hit. This is what works for you.'),
+          counter:R('double','Her first action is a real straight arm to the hand. Your counter meets it. Both lights.'),
+          parry4:R('them','Her action to the hand draws your parry; her lunge to the body goes around it.')},
+     def:{straight:R('them','She blocks your attack and ripostes. This is the touch she usually gets on you.'),
+          fleche:R('them','A straight flèche with no opposition gets parried or countered by her strong arm.'),
+          fleche6:R('you','Six opposition closes the line her counter and parry need, and the off tempo beats her timing.')}
+   }}
 ];
-const F = () => FENCERS.find(f => f.id===S.fid);
-const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 
 /* ---------- State ---------- */
-const S = {fid:'clara', plans:{}, ex:0, cur:null, bet:null, log:[]};
+let custom = [];
+try{ custom = JSON.parse(localStorage.getItem('erl-fencers') || '[]'); if(!Array.isArray(custom)) custom = []; }catch(e){ custom = []; }
+const saveCustom = () => { try{ localStorage.setItem('erl-fencers', JSON.stringify(custom)); }catch(e){} };
+const ALL = () => BUILTIN.concat(custom);
+let savedPlans = {};
+try{ savedPlans = JSON.parse(localStorage.getItem('erl-plans') || '{}') || {}; }catch(e){ savedPlans = {}; }
+const S = {fid:'nat', plans:savedPlans, ex:0, cur:null, bet:null, log:[], cardOpen:null, level:1};
+let saveT = 0;
+function savePlans(){ clearTimeout(saveT); saveT = setTimeout(() => { try{ localStorage.setItem('erl-plans', JSON.stringify(S.plans)); }catch(e){} }, 250); }
+const F = () => ALL().find(f => f.id===S.fid) || ALL()[0];
+const brOf = (f, key) => f.branches.find(b => b.key===key);
+function res(f, br, ans){
+  const o = f.over && f.over[br.key] && f.over[br.key][ans];
+  return o ? {...o, yours:true} : {...TYPES[br.type].res[ans], yours:false};
+}
 function plan(){
-  if(!S.plans[S.fid]) S.plans[S.fid] = {off:{like:0, resp:'', why:'', checked:false, coach:'', key:''}, def:{like:0, resp:'', why:'', checked:false, coach:'', key:''}};
-  return S.plans[S.fid];
+  const f = F();
+  return planFor(f);
+}
+function planFor(f){
+  if(!S.plans[f.id]) S.plans[f.id] = {};
+  const p = S.plans[f.id];
+  f.branches.forEach(b => { if(!p[b.key]) p[b.key] = {like:0, resp:'', why:'', checked:false, coach:'', key:''}; });
+  return p;
 }
 function newExchange(){
   const f = F(); S.ex++; S.bet = null;
-  const side = Math.random() < f.pDef ? 'def' : 'off';
-  const honest = Math.random() < .75;
-  const shown = honest ? side : (side==='def' ? 'off' : 'def');
-  S.cur = {side, action: f[side], cue: ACT[f[shown]].cue, honest};
+  let r = Math.random(), br = f.branches[f.branches.length-1];
+  for(const b of f.branches){ r -= b.p; if(r <= 0){ br = b; break; } }
+  const honest = Math.random() < f.honesty;
+  const others = f.branches.filter(b => b.key!==br.key);
+  const shown = honest || !others.length ? br : others[Math.floor(Math.random()*others.length)];
+  S.cur = {key:br.key, cue:shown.cue, honest: honest || !others.length};
+}
+const bestVal = (f, br) => Math.max(...Object.keys(ANS).map(a => VAL[res(f, br, a).r]));
+const bestAnswers = (f, br) => { const b = bestVal(f, br); return Object.keys(ANS).filter(a => VAL[res(f, br, a).r] === b); };
+function verdict(f, br, ans){
+  const v = VAL[res(f, br, ans).r], b = bestVal(f, br);
+  if(v === b) return v > 0 ? 'Best answer' : 'As good as it gets here';
+  if(v === -1) return 'Loses';
+  return 'Works, but not best';
 }
 
 /* ---------- Rendering ---------- */
 function renderFencers(){
-  $('#fencers').innerHTML = FENCERS.map(f => `<button type="button" class="fc ${f.id===S.fid?'on':''}" data-f="${f.id}" aria-pressed="${f.id===S.fid}">
-    <span class="ty">${f.type}</span><b>${f.name}</b><span class="muted">${f.desc}</span>
-    <dl><dt>Attack</dt><dd>${ACT[f.off].label}</dd><dt>Defence</dt><dd>${ACT[f.def].label}</dd><dt>Prefers</dt><dd>${f.pDef>.5 ? ACT[f.def].label : ACT[f.off].label}</dd></dl></button>`).join('');
+  $('#fencers').innerHTML = ALL().map(f => {
+    const open = S.cardOpen===f.id;
+    return `<div class="fwrap"><button type="button" class="fc ${f.id===S.fid?'on':''}" data-f="${f.id}" aria-pressed="${f.id===S.fid}" aria-expanded="${open}" aria-controls="fdetail">
+      <span class="top"><b>${esc(f.name)}</b><i aria-hidden="true">${open?'−':'+'}</i></span><span class="ty">${esc(f.hand)}-handed${f.build?' · '+esc(f.build):''}</span></button></div>`;
+  }).join('');
+  const f = ALL().find(x => x.id===S.cardOpen), d = $('#fdetail');
+  if(!f){ d.innerHTML = ''; return; }
+  const atk = f.branches.find(b=>b.side==='Attacks'), def = f.branches.find(b=>b.side==='Defends'), some = f.branches.find(b=>b.side==='Sometimes');
+  const aP = Math.round(f.branches.filter(b=>b.side!=='Defends').reduce((a,b)=>a+b.p,0)*100);
+  d.innerHTML = `<div class="fdetail"><dl><dt>Fencer</dt><dd><b>${esc(f.name)}</b> · ${esc(f.hand)}-handed${f.build?' · '+esc(f.build):''}</dd>
+    <dt>Attack</dt><dd>${esc(atk.label)} <span class="muted">(tell: ${esc(atk.cue)})</span></dd>
+    ${some?`<dt>Sometimes</dt><dd>${esc(some.label)}</dd>`:''}
+    <dt>Defence</dt><dd>${esc(def.label)} <span class="muted">(tell: ${esc(def.cue)})</span></dd>
+    <dt>Mix</dt><dd>${aP}% attack · ${100-aP}% defence · fakes tells ${f.honesty>=.8 ? 'rarely' : f.honesty>=.65 ? 'sometimes' : 'often'}</dd>
+    ${f.notes?`<dt>Notes</dt><dd>${esc(f.notes)}</dd>`:''}
+    ${f.works?`<dt>Works for you</dt><dd>${esc(f.works)}</dd>`:''}${f.hurts?`<dt>Hurts you</dt><dd>${esc(f.hurts)}</dd>`:''}</dl>
+    ${f.custom?`<button type="button" class="del" data-del="${f.id}">Remove ${esc(f.name)}</button>`:''}</div>`;
 }
 function renderExchange(){
   const f = F();
@@ -253,68 +433,60 @@ function renderExchange(){
   $('#exBox').innerHTML = `<span class="muted">En garde at lunge distance. What you see:</span><span class="cue"><b>${esc(S.cur.cue)}.</b></span>` +
     (S.bet ? `<span class="muted">Revealed below.</span>` : `<span class="muted">Bet on the branch you think is coming.</span>`);
 }
-function bestVal(action){ return Math.max(...Object.keys(ANS).map(a => VAL[TABLE[a][action].r])); }
-function branchVerdict(action, resp){
-  const v = VAL[TABLE[resp][action].r], best = bestVal(action);
-  if(v === best) return v > 0 ? 'Best answer' : 'As good as it gets here';
-  if(v === -1) return 'Loses';
-  return 'Works, but not best';
-}
-function bestAnswers(action){ const b = bestVal(action); return Object.keys(ANS).filter(a => VAL[TABLE[a][action].r] === b); }
-function branchHTML(side, row){
-  const f = F(), p = plan()[side], action = f[side], other = side==='off' ? 'def' : 'off';
-  const revealed = !!S.bet, actual = revealed && S.cur.side===side, bet = revealed && S.bet===side;
-  const realP = side==='def' ? f.pDef : 1 - f.pDef;
-  const theyNode = `<div class="node they ${actual?'actual':''} ${bet?'bet':''}" id="n-${side}" style="grid-row:${row};grid-column:2">
-    <div><span class="s">${cap(f.she)} ${side==='off' ? 'attacks' : 'defends'}</span><div class="t">${ACT[action].label}</div><div class="s">${ACT[action].sub}</div></div>
-    <div class="fl">How likely?<div class="seg" data-likeseg="${side}">${[1,2,3].map(v => `<button type="button" data-like="${v}" class="${p.like===v?'on':''}">${LIKE[v]}</button>`).join('')}</div></div>
-    ${revealed ? `<div class="s">Real: ${f.name} does this ${Math.round(realP*100)}% of the time.${actual ? ' <b>◆ This is what happened.</b>' : ''}${bet ? ' <b>▶ You bet on this.</b>' : ''}</div>` : ''}
-    <div class="row"><button class="btn" type="button" data-bet="${side}" ${p.resp && !revealed ? '' : 'disabled'}>Bet on this</button></div>
+function branchHTML(f, br, row){
+  const p = plan()[br.key], revealed = !!S.bet, actual = revealed && S.cur.key===br.key, bet = revealed && S.bet===br.key;
+  const theyNode = `<div class="node they ${actual?'actual':''} ${bet?'bet':''}" id="n-${br.key}" style="grid-row:${row};grid-column:2">
+    <div><span class="s">${esc(f.name)} ${br.side.toLowerCase()}</span><div class="t">${esc(br.label)}</div><div class="s">${esc(br.sub||'')}</div><div class="s">Tell: ${esc(br.cue)}</div></div>
+    <div class="fl">How likely?<div class="seg" data-likeseg="${br.key}">${[1,2,3].map(v => `<button type="button" data-like="${v}" class="${p.like===v?'on':''}">${LIKE[v]}</button>`).join('')}</div></div>
+    ${revealed ? `<div class="s">Real: ${f.name} does this ${Math.round(br.p*100)}% of the time.${actual ? ' <b>◆ This is what happened.</b>' : ''}${bet ? ' <b>▶ You bet on this.</b>' : ''}</div>` : ''}
+    <div class="row"><button class="btn" type="button" data-bet="${br.key}" ${p.resp && !revealed ? '' : 'disabled'}>Bet on this</button></div>
   </div>`;
   const opts = `<option value="">Choose your answer…</option>` + Object.entries(ANS).map(([k,a]) => `<option value="${k}" ${p.resp===k?'selected':''}>${a.label} · ${a.sub}</option>`).join('');
-  const ansNode = `<div class="node ans" id="a-${side}" style="grid-row:${row};grid-column:3">
-    <label class="fl">You answer with<select data-resp="${side}">${opts}</select></label>
-    <label class="fl">Why<textarea data-why="${side}" placeholder="Why does this beat ${esc(ACT[action].label.toLowerCase())}?">${esc(p.why)}</textarea></label>
-    <div class="row"><button class="btn o" type="button" data-check="${side}" ${p.resp?'':'disabled'}>Check</button></div>
+  const ansNode = `<div class="node ans" id="a-${br.key}" style="grid-row:${row};grid-column:3">
+    <label class="fl">You answer with<select data-resp="${br.key}">${opts}</select></label>
+    <label class="fl">Why<textarea data-why="${br.key}" placeholder="Why does this work against ${esc(br.label.toLowerCase())}?">${esc(p.why)}</textarea></label>
+    <div class="row"><button class="btn o" type="button" data-check="${br.key}" ${p.resp?'':'disabled'}>Check</button></div>
   </div>`;
   let resNode;
   if(p.checked && p.resp){
-    const res = TABLE[p.resp][action], mis = TABLE[p.resp][f[other]], verdict = branchVerdict(action, p.resp);
-    const bests = bestAnswers(action).filter(a => a!==p.resp);
-    const showBetter = bests.length && (verdict==='Loses' || verdict==='Works, but not best');
-    resNode = `<div class="node result" id="r-${side}" style="grid-row:${row};grid-column:4">
+    const r = res(f, br, p.resp), v = verdict(f, br, p.resp), bests = bestAnswers(f, br).filter(a => a!==p.resp);
+    const showBetter = bests.length && (v==='Loses' || v==='Works, but not best');
+    const mis = f.branches.filter(b => b.key!==br.key).map(b => { const m = res(f, b, p.resp); return `<div>If ${f.name} ${b.side==='Sometimes'?'instead uses':b.side.toLowerCase()+' with'} <b>${esc(b.label.toLowerCase())}</b>: <b>${RESULT_TXT[m.r].toLowerCase()}</b>. ${esc(m.why)}</div>`; }).join('');
+    resNode = `<div class="node result" id="r-${br.key}" style="grid-row:${row};grid-column:4">
       <div class="res">
-        <div><span class="tag ${verdict==='Best answer'?'k':''}">${verdict}</span></div>
-        <div class="big">${RESULT_TXT[res.r]}</div>
-        <div>${esc(res.why)}</div>
+        <div><span class="tag ${v==='Best answer'?'k':''}">${v}</span></div>
+        <div class="big">${RESULT_TXT[r.r]}</div>
+        <div>${esc(r.why)}</div>
+        ${r.yours ? `<span class="yours">From your experience against ${esc(f.name)}</span>` : ''}
         ${showBetter ? `<div><b>Better:</b> ${bests.map(a => ANS[a].label.toLowerCase()).join(' or ')}.</div>` : ''}
-        <div class="misread"><b>If you misread</b> and ${f.she} ${other==='off'?'attacks':'defends'} with ${ACT[f[other]].label.toLowerCase()}: <b>${RESULT_TXT[mis.r].toLowerCase()}</b>. ${esc(mis.why)}</div>
+        <div class="misread"><b>If you misread</b>${mis}</div>
       </div>
-      ${p.coach || live() ? `<div class="coach ${p.coach?'':'wait'}" data-coach="${side}">${esc(p.coach || 'Your coach is reading your reasoning…')}</div>` : ''}
+      ${p.coach || live() ? `<div class="coach ${p.coach?'':'wait'}" data-coach="${br.key}">${esc(p.coach || 'Your coach is reading your reasoning…')}</div>` : ''}
     </div>`;
   } else {
-    resNode = `<div class="node result empty" id="r-${side}" style="grid-row:${row};grid-column:4"><div>${p.resp ? 'Press Check to see what happens.' : 'Choose an answer first.'}</div></div>`;
+    resNode = `<div class="node result empty" id="r-${br.key}" style="grid-row:${row};grid-column:4"><div>${p.resp ? 'Press Check to see what happens.' : 'Choose an answer first.'}</div></div>`;
   }
   return theyNode + ansNode + resNode;
 }
 function renderTree(){
-  const f = F();
+  const f = F(), n = f.branches.length;
   $('#tree').innerHTML = `
     <div class="colhd" style="grid-row:1;grid-column:1">Opponent</div>
     <div class="colhd" style="grid-row:1;grid-column:2">They do</div>
     <div class="colhd" style="grid-row:1;grid-column:3">You answer</div>
     <div class="colhd" style="grid-row:1;grid-column:4">Result</div>
-    <div class="node opp" id="n-root" style="grid-column:1">
-      <div><div class="s">${f.type}</div><div class="t">${f.name}</div></div>
-      <div class="s">Attack: ${ACT[f.off].label.toLowerCase()}<br>Defence: ${ACT[f.def].label.toLowerCase()}</div>
+    <div class="node opp" id="n-root" style="grid-column:1;grid-row:2 / span ${n}">
+      <div><div class="s">${esc(f.hand)}-handed · ${esc(f.build||'')}</div><div class="t">${esc(f.name)}</div></div>
+      ${f.notes ? `<div class="s">${esc(f.notes)}</div>` : ''}
+      <div class="s">Fakes tells: ${f.honesty>=.8 ? 'rarely' : f.honesty>=.65 ? 'sometimes' : 'often'}</div>
     </div>
-    ${branchHTML('off', 2)}${branchHTML('def', 3)}
+    ${f.branches.map((b,i) => branchHTML(f, b, i+2)).join('')}
     <svg id="wires" aria-hidden="true"></svg>`;
   drawWires();
 }
 function drawWires(){
   const tree = $('#tree'), svg = $('#wires'); if(!svg) return;
-  const W = tree.scrollWidth, H = tree.scrollHeight;
+  const f = F(), W = tree.scrollWidth, H = tree.scrollHeight;
   svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   const box = id => { const e = document.getElementById(id); return e ? {x:e.offsetLeft, y:e.offsetTop, w:e.offsetWidth, h:e.offsetHeight} : null; };
   const wire = (a, b, dashed) => {
@@ -322,26 +494,26 @@ function drawWires(){
     const x1 = a.x + a.w, y1 = a.y + Math.min(a.h/2, 40), x2 = b.x - 2, y2 = b.y + Math.min(b.h/2, 40), bx = x1 + 28;
     return `<path d="M${x1},${y1} H${bx} V${y2} H${x2}" fill="none" stroke="#000" stroke-width="1.3" ${dashed?'stroke-dasharray="4 3"':''} marker-end="url(#ar)"/>`;
   };
-  const root = box('n-root');
+  const root = box('n-root'), pl = plan();
   svg.innerHTML = `<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#000"/></marker></defs>` +
-    ['off','def'].map(s => wire(root, box('n-'+s)) + wire(box('n-'+s), box('a-'+s)) + wire(box('a-'+s), box('r-'+s), !plan()[s].checked)).join('');
+    f.branches.map(b => wire(root, box('n-'+b.key)) + wire(box('n-'+b.key), box('a-'+b.key)) + wire(box('a-'+b.key), box('r-'+b.key), !(pl[b.key] && pl[b.key].checked))).join('');
 }
 new ResizeObserver(() => drawWires()).observe($('#tree'));
 
 function renderReveal(){
   const r = $('#reveal');
   if(!S.bet){ r.hidden = true; return; }
-  const f = F(), p = plan()[S.bet], res = TABLE[p.resp][S.cur.action], right = S.bet===S.cur.side;
+  const f = F(), bb = brOf(f, S.bet), act = brOf(f, S.cur.key), p = plan()[S.bet], out = res(f, act, p.resp), right = S.bet===S.cur.key;
   r.hidden = false;
-  $('#rCall').textContent = RESULT_TXT[res.r];
-  $('#rText').textContent = `${f.name} went for ${ACT[S.cur.action].label.toLowerCase()}. You bet on the ${S.bet==='off'?'attack':'defence'} branch and answered with ${ANS[p.resp].label.toLowerCase()}. Your read was ${right ? 'right' : 'wrong'}.`;
-  $('#rWhy').textContent = res.why + (S.cur.honest ? ' The cue was honest this time.' : ' The cue was misleading this time: it showed the other action.');
+  $('#rCall').textContent = RESULT_TXT[out.r];
+  $('#rText').textContent = `${f.name} went for ${act.label.toLowerCase()}. You bet on "${bb.label.toLowerCase()}" and answered with ${ANS[p.resp].label.toLowerCase()}. Your read was ${right ? 'right' : 'wrong'}.`;
+  $('#rWhy').textContent = out.why + (S.cur.honest ? ' The tell was honest this time.' : ` The tell was a fake this time: it looked like ${f.branches.find(b=>b.cue===S.cur.cue).label.toLowerCase()}.`);
 }
 function renderLog(){
   const n = S.log.length; if(!n){ $('#log').textContent = ''; return; }
   const right = S.log.filter(x => x.right).length, c = {you:0, them:0, double:0, none:0};
   S.log.forEach(x => c[x.r]++);
-  $('#log').textContent = `Practice so far: ${right} of ${n} reads right. You scored ${c.you}, they scored ${c.them}, doubles ${c.double}, no touch ${c.none}.`;
+  $('#log').textContent = `Practice against ${F().name}: ${right} of ${n} reads right. You scored ${c.you}, ${F().name} scored ${c.them}, doubles ${c.double}, no touch ${c.none}.`;
 }
 function renderAll(){ renderFencers(); renderExchange(); renderTree(); renderReveal(); renderLog(); }
 
@@ -356,49 +528,170 @@ function setLive(){
   $('#liveText').textContent = avail==='no' ? 'Coach explanations unavailable here (built-in results only)' : 'Coach explanations by Claude';
   $('#liveToggle').disabled = avail==='no';
 }
-async function check(side){
-  const f = F(), p = plan()[side], action = f[side], other = side==='off' ? 'def' : 'off';
+async function check(key){
+  const f = F(), br = brOf(f, key), p = plan()[key];
   p.checked = true; p.coach = '';
-  const key = p.resp + '|' + p.why + '|' + Date.now(); p.key = key;
-  renderTree();
+  const k = p.resp + '|' + Date.now(); p.key = k;
+  savePlans(); renderTree();
   if(!live()) return;
-  const res = TABLE[p.resp][action], mis = TABLE[p.resp][f[other]];
-  const prompt = `You are an épée coach teaching an elite fencer to reason about single actions, one at a time. Keep it simple and concrete. No bout context: just en garde at lunge distance.
-Opponent: ${f.name}, a ${f.type.toLowerCase()}. Attack: ${ACT[f.off].label.toLowerCase()}. Defence: ${ACT[f.def].label.toLowerCase()}. Prefers ${f.pDef>.5 ? 'to defend' : 'to attack'}.
-Branch: ${f.name} ${side==='off'?'attacks':'defends'} with ${ACT[action].label.toLowerCase()} (${ACT[action].sub.toLowerCase()}).
-Fencer's answer: ${ANS[p.resp].label.toLowerCase()} (${ANS[p.resp].sub.toLowerCase()}).
+  const r = res(f, br, p.resp);
+  const mis = f.branches.filter(b => b.key!==key).map(b => { const m = res(f, b, p.resp); return `- If ${f.name} instead does ${b.label.toLowerCase()}: ${RESULT_TXT[m.r].toLowerCase()}. ${m.why}`; }).join('\n');
+  const prompt = `You are an épée coach helping an NCAA Division I, former national-team épéeist reason about single actions against a real opponent she has scouted. Keep it simple and concrete. No bout context: en garde at lunge distance.
+Opponent: ${f.name}, ${f.hand.toLowerCase()}-handed, ${f.build || 'build unknown'}. ${f.notes || ''}
+Her actions: ${f.branches.map(b => `${b.label} (${b.side.toLowerCase()}, about ${Math.round(b.p*100)}% of the time; tell: ${b.cue})`).join('; ')}.
+The fencer's own scouting: what works for her: ${f.works || 'not given'}. What gets her hit: ${f.hurts || 'not given'}.
+Branch being checked: ${f.name} ${br.side.toLowerCase()}: ${br.label} (${br.sub || ''}).
+Fencer's answer: ${ANS[p.resp].label} (${ANS[p.resp].sub}).
 Fencer's reasoning: ${p.why.trim() ? '"' + p.why.trim().slice(0,800) + '"' : '(none written)'}
-Result (fixed by the simulator, do not contradict): ${RESULT_TXT[res.r]}. ${res.why} Verdict: ${branchVerdict(action, p.resp)}. Best answers to this action: ${bestAnswers(action).map(a=>ANS[a].label.toLowerCase()).join(', ')}.
-If the fencer misread and ${f.name} instead ${other==='off'?'attacks':'defends'} with ${ACT[f[other]].label.toLowerCase()}, the same answer gives: ${RESULT_TXT[mis.r].toLowerCase()}. ${mis.why}
-In 2–4 short sentences (under 80 words), plain prose: say whether their reasoning is right, explain the timing or blade logic behind the result, and if a better answer exists say which and why. If their answer also covers the other branch well, point that out.`;
+Result (fixed by the simulator, do not contradict): ${RESULT_TXT[r.r]}. ${r.why}${r.yours ? ' (This result comes from the fencer\'s own experience against this opponent.)' : ''} Verdict: ${verdict(f, br, p.resp)}. Best answers here: ${bestAnswers(f, br).map(a=>ANS[a].label.toLowerCase()).join(', ')}.
+If she misread the branch:
+${mis}
+In 2–4 short sentences (under 85 words), plain prose: say whether her reasoning is right, explain the timing, distance or blade logic behind the result using what is known about ${f.name}, and if a better answer exists say which and why. If the answer also covers the other branches well, say so.`;
   try{
-    await sampleFn(prompt, {cache:false, onText:({text}) => { if(p.key===key){ p.coach = text; const el = document.querySelector(`[data-coach="${side}"]`); if(el){ el.textContent = text; el.classList.remove('wait'); drawWires(); } } }});
+    await sampleFn(prompt, {cache:false, onText:({text}) => { if(p.key===k){ p.coach = text; savePlans(); const el = document.querySelector(`[data-coach="${key}"]`); if(el){ el.textContent = text; el.classList.remove('wait'); drawWires(); } } }});
   }catch(e){
     if(['not_granted','sampling_disabled','not_declared','capability_disabled','capability_removed'].includes(e && e.code)){ avail = 'no'; setLive(); }
-    if(p.key===key){ p.coach = e.text || ''; renderTree(); }
+    if(p.key===k){ p.coach = e.text || ''; renderTree(); }
   }
 }
 
+/* ---------- Add a fencer ---------- */
+const offTypes = Object.entries(TYPES).filter(([,t]) => t.off), defTypes = Object.entries(TYPES).filter(([,t]) => !t.off);
+$('#fAtkT').innerHTML = offTypes.map(([k,t]) => `<option value="${k}">${t.label}</option>`).join('');
+$('#fDefT').innerHTML = defTypes.map(([k,t]) => `<option value="${k}">${t.label}</option>`).join('');
+$('#fVarT').innerHTML = Object.entries(TYPES).map(([k,t]) => `<option value="${k}" ${k==='flick'?'selected':''}>${t.label}</option>`).join('');
+$('#addForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = id => $(id).value.trim(), err = $('#fErr');
+  if(!v('#fName')){ err.textContent = 'Enter a name.'; $('#fName').focus(); return; }
+  if(!v('#fAtk') || !v('#fDef')){ err.textContent = 'Describe the main attack and the main defence.'; return; }
+  err.textContent = '';
+  const atkP = Math.min(100, Math.max(0, parseFloat(v('#fPct')) || 50)) / 100;
+  const varP = v('#fVar') ? Math.min(40, Math.max(0, parseFloat(v('#fVarP')) || 10)) / 100 : 0;
+  const branches = [{key:'atk', side:'Attacks', type:$('#fAtkT').value, label:v('#fAtk'), sub:'', p:Math.max(0, atkP - varP), cue:v('#fAtkC') || 'They come forward'}];
+  if(varP) branches.push({key:'var', side:'Sometimes', type:$('#fVarT').value, label:v('#fVar'), sub:'', p:varP, cue:'Something different from usual'});
+  branches.push({key:'def', side:'Defends', type:$('#fDefT').value, label:v('#fDef'), sub:'', p:1 - atkP, cue:v('#fDefC') || 'They wait'});
+  const tot = branches.reduce((a,b)=>a+b.p,0) || 1; branches.forEach(b => b.p = b.p / tot);
+  const f = {id:'c' + Date.now(), custom:true, name:v('#fName'), hand:$('#fHand').value, build:v('#fBuild'), honesty:parseFloat($('#fFake').value),
+             notes:v('#fNotes'), works:v('#fWorks'), hurts:v('#fHurts'), branches, over:{}};
+  custom.push(f); saveCustom();
+  $('#addForm').reset(); $('#addBox').open = false;
+  S.fid = f.id; S.ex = 0; S.log = []; newExchange(); renderAll();
+});
+
+/* ---------- Shared helpers ---------- */
+function selectFencer(id, openCard){
+  S.fid = id; S.cardOpen = openCard ? id : null; S.ex = 0; S.log = []; newExchange(); renderAll();
+}
+function removeFencer(id){
+  custom = custom.filter(f => f.id!==id); saveCustom(); delete S.plans[id]; savePlans();
+  if(S.cardOpen===id) S.cardOpen = null;
+  if(S.fid===id){ S.fid = 'nat'; S.ex = 0; S.log = []; newExchange(); }
+  renderAll();
+}
+$('#fdetail').addEventListener('click', e => { const d = e.target.closest('[data-del]'); if(d) removeFencer(d.dataset.del); });
+function wiresIn(treeEl, links){
+  const svg = treeEl.querySelector('svg.w'); if(!svg) return;
+  const W = treeEl.scrollWidth, H = treeEl.scrollHeight;
+  svg.setAttribute('width', W); svg.setAttribute('height', H); svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const box = e => e ? {x:e.offsetLeft, y:e.offsetTop, w:e.offsetWidth, h:e.offsetHeight} : null;
+  svg.innerHTML = `<defs><marker id="ar-${treeEl.id}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#000"/></marker></defs>` +
+    links.map(([ea, eb, dashed]) => { const a = box(ea), b = box(eb); if(!a || !b) return '';
+      const x1 = a.x + a.w, y1 = a.y + Math.min(a.h/2, 34), x2 = b.x - 2, y2 = b.y + Math.min(b.h/2, 34), bx = x1 + 22;
+      return `<path d="M${x1},${y1} H${bx} V${y2} H${x2}" fill="none" stroke="#000" stroke-width="1.2" ${dashed?'stroke-dasharray="4 3"':''} marker-end="url(#ar-${treeEl.id})"/>`; }).join('');
+}
+
+/* ---------- Level 0: the ground ---------- */
+function renderGround(){
+  const fs = ALL();
+  let branches = 0, answered = 0, checked = 0, best = 0, mine = 0; const used = {};
+  fs.forEach(f => { const p = S.plans[f.id] || {}; f.branches.forEach(b => { branches++; const x = p[b.key]; if(x && x.resp){ answered++; used[x.resp] = (used[x.resp]||0)+1; if(x.checked){ checked++; const v = verdict(f, b, x.resp); if(v==='Best answer' || v==='As good as it gets here') best++; if(res(f, b, x.resp).yours) mine++; } } }); });
+  const top = Object.entries(used).sort((a,b)=>b[1]-a[1])[0];
+  $('#gSum').innerHTML = `<span><b>${fs.length}</b>opponents</span><span><b>${branches}</b>branches</span><span><b>${answered}</b>answered</span><span><b>${checked}</b>checked</span><span><b>${best}</b>best answers</span>` +
+    (top ? `<span>Your most used answer: <b style="font-family:var(--f-body);font-size:15px;font-weight:600">${esc(ANS[top[0]].label.toLowerCase())}</b>(${top[1]} ${top[1]===1?'branch':'branches'})</span>` : '');
+  $('#gTrees').innerHTML = fs.map(f => {
+    const p = S.plans[f.id] || {}, n = f.branches.length, gid = 'g-' + f.id;
+    const rows = f.branches.map((b, i) => {
+      const x = p[b.key] || {}, row = i + 2;
+      const like = x.like ? LIKE[x.like] : 'not marked';
+      let ansHTML, resHTML;
+      if(x.resp){
+        ansHTML = `<div class="t">${esc(ANS[x.resp].label)}</div>${x.why ? `<div class="why">${esc(x.why)}</div>` : '<div class="s">No reasoning written</div>'}`;
+        if(x.checked){ const r = res(f, b, x.resp), v = verdict(f, b, x.resp);
+          resHTML = `<div class="node" id="${gid}-r-${b.key}" style="grid-row:${row};grid-column:4"><div><span class="tag ${v==='Best answer'?'k':''}">${v}</span></div><div class="t">${RESULT_TXT[r.r]}</div>${r.yours?'<div class="s">From your experience</div>':''}</div>`;
+        } else resHTML = `<div class="node result empty" id="${gid}-r-${b.key}" style="grid-row:${row};grid-column:4"><div class="s">Not checked yet</div></div>`;
+      } else {
+        ansHTML = `<div class="s">No answer yet</div>`;
+        resHTML = `<div class="node result empty" id="${gid}-r-${b.key}" style="grid-row:${row};grid-column:4"><div class="s">—</div></div>`;
+      }
+      return `<div class="node" id="${gid}-n-${b.key}" style="grid-row:${row};grid-column:2"><div class="s">${esc(b.side)} · ${Math.round(b.p*100)}%</div><div class="t">${esc(b.label)}</div><div class="s">Your estimate: ${like}</div></div>
+        <div class="node ${x.resp?'':'result empty'}" id="${gid}-a-${b.key}" style="grid-row:${row};grid-column:3">${ansHTML}</div>${resHTML}`;
+    }).join('');
+    return `<section class="gblock" aria-label="${esc(f.name)}">
+      <div class="tscroll"><div class="tree gtree" id="${gid}">
+        <div class="colhd" style="grid-row:1;grid-column:1">Opponent</div><div class="colhd" style="grid-row:1;grid-column:2">They do</div>
+        <div class="colhd" style="grid-row:1;grid-column:3">You answer</div><div class="colhd" style="grid-row:1;grid-column:4">Result</div>
+        <div class="node opp" id="${gid}-root" style="grid-column:1;grid-row:2 / span ${n}"><div class="t">${esc(f.name)}</div><div class="s">${esc(f.hand)}-handed${f.build?' · '+esc(f.build):''}</div>
+          <button class="btn o" type="button" data-open="${f.id}">Edit in level 1</button></div>
+        ${rows}<svg class="w" aria-hidden="true"></svg></div></div></section>`;
+  }).join('');
+  fs.forEach(f => {
+    const gid = 'g-' + f.id, el = document.getElementById(gid), root = document.getElementById(gid+'-root'), p = S.plans[f.id] || {};
+    wiresIn(el, f.branches.flatMap(b => [[root, document.getElementById(`${gid}-n-${b.key}`)], [document.getElementById(`${gid}-n-${b.key}`), document.getElementById(`${gid}-a-${b.key}`)], [document.getElementById(`${gid}-a-${b.key}`), document.getElementById(`${gid}-r-${b.key}`), !(p[b.key] && p[b.key].checked)]]));
+  });
+}
+$('#gTrees').addEventListener('click', e => { const b = e.target.closest('[data-open]'); if(b){ setLevel(1); if(S.fid!==b.dataset.open) selectFencer(b.dataset.open, false); window.scrollTo({top:0}); } });
+
+/* ---------- Levels ---------- */
+const LEVEL_NAMES = ['Level 0 · Ground', 'Level 1 · Single actions', 'Level 2 · Real bout'];
+const LEVEL_DESC = [
+  'Level 0: the ground. Every decision tree you have built, for every fencer, in one place.',
+  'Level 1: single actions against real opponents. Build your tree for one fencer, check every answer, then read one exchange at a time.',
+  'Level 2: a real bout. Locked for now.'
+];
+function setLevel(n){
+  S.level = n;
+  ['#L0','#L1','#L2'].forEach((id, i) => $(id).hidden = i!==n);
+  $('#lvlName').textContent = LEVEL_NAMES[n]; $('#lvlDesc').textContent = LEVEL_DESC[n];
+  document.querySelectorAll('#lvlMenu [data-level]').forEach(b => b.classList.toggle('on', +b.dataset.level===n));
+  if(n===0) renderGround();
+  if(n===1) drawWires();
+  if(n===2){ let total = 0, bestN = 0; ALL().forEach(f => { const p = S.plans[f.id] || {}; f.branches.forEach(b => { total++; const x = p[b.key]; if(x && x.resp && x.checked){ const v = verdict(f, b, x.resp); if(v==='Best answer' || v==='As good as it gets here') bestN++; } }); });
+    $('#l2Status').textContent = `Your level 1 progress: ${bestN} of ${total} branches answered with a best answer.`; }
+  try{ localStorage.setItem('erl-level', String(n)); }catch(e){}
+}
+function toggleMenu(open){
+  const m = $('#lvlMenu'), b = $('#lvlBtn'); const o = open===undefined ? m.hidden : open;
+  m.hidden = !o; b.setAttribute('aria-expanded', String(o)); $('#lvlCaret').textContent = o ? '▴' : '▾';
+}
+$('#lvlBtn').addEventListener('click', () => toggleMenu());
+$('#lvlMenu').addEventListener('click', e => { const b = e.target.closest('[data-level]'); if(!b) return; setLevel(+b.dataset.level); toggleMenu(false); });
+document.addEventListener('click', e => { if(!e.target.closest('.levels')) toggleMenu(false); });
+document.addEventListener('keydown', e => { if(e.key==='Escape' && !$('#lvlMenu').hidden){ toggleMenu(false); $('#lvlBtn').focus(); } });
+
 /* ---------- Events ---------- */
 $('#fencers').addEventListener('click', e => {
-  const b = e.target.closest('[data-f]'); if(!b || b.dataset.f===S.fid) return;
-  S.fid = b.dataset.f; S.ex = 0; S.log = []; newExchange(); renderAll();
+  const d = e.target.closest('[data-del]');
+  if(d){ removeFencer(d.dataset.del); return; }
+  const b = e.target.closest('[data-f]'); if(!b) return;
+  if(b.dataset.f===S.fid){ S.cardOpen = S.cardOpen===S.fid ? null : S.fid; renderFencers(); return; }
+  selectFencer(b.dataset.f, true);
 });
 const tree = $('#tree');
-tree.addEventListener('input', e => { const t = e.target; if(t.dataset.why){ plan()[t.dataset.why].why = t.value; } });
+tree.addEventListener('input', e => { const t = e.target; if(t.dataset.why){ plan()[t.dataset.why].why = t.value; savePlans(); } });
 tree.addEventListener('change', e => {
   const t = e.target;
-  if(t.dataset.resp){ const p = plan()[t.dataset.resp]; p.resp = t.value; p.checked = false; p.coach = ''; renderTree(); }
+  if(t.dataset.resp){ const p = plan()[t.dataset.resp]; p.resp = t.value; p.checked = false; p.coach = ''; savePlans(); renderTree(); }
 });
 tree.addEventListener('click', e => {
   const like = e.target.closest('[data-like]');
-  if(like){ const side = like.closest('[data-likeseg]').dataset.likeseg, p = plan()[side], v = +like.dataset.like; p.like = p.like===v ? 0 : v; renderTree(); return; }
+  if(like){ const key = like.closest('[data-likeseg]').dataset.likeseg, p = plan()[key], v = +like.dataset.like; p.like = p.like===v ? 0 : v; savePlans(); renderTree(); return; }
   const chk = e.target.closest('[data-check]'); if(chk && !chk.disabled){ check(chk.dataset.check); return; }
   const bet = e.target.closest('[data-bet]');
   if(bet && !bet.disabled){
     S.bet = bet.dataset.bet;
-    const p = plan()[S.bet], res = TABLE[p.resp][S.cur.action];
-    S.log.push({right: S.bet===S.cur.side, r: res.r});
+    const f = F(), out = res(f, brOf(f, S.cur.key), plan()[S.bet].resp);
+    S.log.push({right: S.bet===S.cur.key, r: out.r});
     renderExchange(); renderTree(); renderReveal(); renderLog();
     $('#reveal').scrollIntoView({block:'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
   }
@@ -407,5 +700,7 @@ $('#nextBtn').addEventListener('click', () => { newExchange(); renderExchange();
 $('#liveToggle').addEventListener('change', () => renderTree());
 
 newExchange(); renderAll();
+let startLevel = 1; try{ const v = parseInt(localStorage.getItem('erl-level')); if(v===0 || v===2) startLevel = v; }catch(e){}
+setLevel(startLevel);
 })();
 </script>
