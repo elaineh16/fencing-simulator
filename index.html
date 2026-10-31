@@ -191,6 +191,49 @@ details.sub > summary span.m{font-weight:400;color:var(--muted)}
 .chatform input{flex:1;min-width:0;background:var(--sunk);border:1px solid var(--rule);border-radius:6px;padding:8px 10px}
 .note{font-size:12.5px;color:var(--muted);margin:8px 0 0}
 .summary{white-space:pre-wrap;max-width:72ch}
+
+/* black & white decision tree */
+#treeCard{background:#fff;color:#000;border-color:#000}
+#treeCard > h2{color:#000}
+#treeCard .mini{background:#fff;color:#000;border-color:#000}
+#treeCard .mini:hover{background:#000;color:#fff}
+#treeCard .intro{color:#222}
+#treeCard :focus-visible{outline:2px solid #000;outline-offset:3px}
+.tscroll{overflow:auto;border:1px solid #000;border-radius:8px;padding:12px;background:#fff;max-height:78vh}
+.tz{position:relative;margin:0 auto}
+.tzi{position:relative;transform-origin:0 0}
+.tzi svg{position:absolute;left:0;top:0;overflow:visible}
+.tn{position:absolute;background:#fff;color:#000;border:1.5px solid #000;border-radius:10px;padding:9px 6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font:13px/17px var(--f-body);cursor:pointer;text-align:center}
+.tn span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tn .b{font-weight:600}
+.tn .tg{color:#555;font-size:12px}
+.tn:hover{background:#efefef}
+.tn.sel{background:#000;color:#fff}
+.tn.sel .tg{color:#bbb}
+.tn.actual{border-width:3.5px}
+.tn.played{outline:2px dashed #000;outline-offset:4px}
+.tn.none{border-style:dashed}
+.tkey{font-size:12.5px;color:#333;margin:8px 0 0}
+.ed{margin-top:12px;border:1.5px solid #000;border-radius:10px;padding:14px;display:grid;gap:10px;background:#fff;color:#000}
+.edh{display:flex;flex-direction:column;gap:2px}
+.edh b{font-weight:600}
+.edh small,.edlbl{color:#444;font-size:13px}
+.ed .fld{color:#222}
+.ed textarea,.ed .sel{background:#fff;color:#000;border:1px solid #000}
+.ed .seg{border-color:#000}
+.ed .seg button{color:#000;border-right-color:#000}
+.ed .seg button.on{background:#000;color:#fff}
+.ed .fb{background:#fff;border:1px solid #000;color:#000}
+.ed .fb .ex{color:#000}
+.ed .fb .ex.wait{color:#555}
+.ed .note,.ed .press{color:#333}
+.bwbtn{background:#000;color:#fff;border:1px solid #000;border-radius:6px;padding:8px 14px;font-weight:600;cursor:pointer;font-size:14px}
+.bwbtn.o{background:#fff;color:#000}
+.bwbtn.o:hover{background:#000;color:#fff}
+.bwbtn:disabled{opacity:.35;cursor:not-allowed}
+.bwbtn:disabled:hover{background:#fff;color:#000}
+#treeCard .review{border-top-color:#000}
+#treeCard .review .out{color:#000}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -236,11 +279,16 @@ details.sub > summary span.m{font-weight:400;color:var(--muted)}
       </section>
 
       <section class="card" id="treeCard" aria-labelledby="tHd">
-        <h2 id="tHd"><span>Decision tree</span><span class="tools"><button class="mini" type="button" id="expandAll">Expand all</button><button class="mini" type="button" id="collapseAll">Collapse all</button></span></h2>
-        <p class="intro" id="treeIntro">Open a branch for each action you think matters. Mark how likely it is, choose your answer, write your reasoning and press <b>Check with coach</b>. When you are ready, press <b>Play this branch</b> on the one you are betting on.</p>
-        <div id="tree"></div>
+        <h2 id="tHd"><span>Decision tree</span><span class="tools">
+          <button class="mini" type="button" id="expandAll">Expand all</button><button class="mini" type="button" id="collapseAll">Collapse all</button>
+          <button class="mini" type="button" data-zoom="out" aria-label="Zoom out">−</button><button class="mini" type="button" data-zoom="fit" id="zoomLbl">Fit</button><button class="mini" type="button" data-zoom="in" aria-label="Zoom in">+</button>
+        </span></h2>
+        <p class="intro" id="treeIntro"></p>
+        <div class="tscroll" id="treeScroll"><div id="tree"></div></div>
+        <p class="tkey">value = expected touches for you (+1 your touch, −1 theirs) · lights = [you, double, them, no touch] in %</p>
+        <div class="ed" id="treeEd"></div>
         <div class="review">
-          <div class="bact"><button class="btn ghost" type="button" id="reviewBtn">Review my whole tree</button></div>
+          <div class="bact"><button class="bwbtn o" type="button" id="reviewBtn">Review my whole tree</button></div>
           <div class="out" id="reviewOut"></div>
         </div>
       </section>
@@ -438,7 +486,7 @@ const S = {
   me:0, opp:0, clock:180, period:1, xm:-2, xo:2, priority:null, priMin:false, over:false, winner:null,
   ex:0, oppLast:[], myHist:{}, log:[], drill:null,
   moment:null, read:null, conf:'med', result:null,
-  plan:null, open:new Set(['__none'])
+  plan:null, open:new Set(), sel:'root', zoom:'fit'
 };
 const P = () => PERSONAS.find(p=>p.id===S.personaId);
 const fmtCfg = () => FORMATS[S.format];
@@ -663,73 +711,77 @@ function templateNarration(m){
   return `${b}. ${m.tells[0].text}. ${m.tells[1] ? m.tells[1].text + '.' : ''} ${a} is ${m.dv.kind==='win' ? 'wary of trading touches' : m.dv.kind==='lose' ? 'happy to trade touches' : 'reading you as closely as you read ' + p.obj}.`;
 }
 
-/* ================= Rendering: decision tree ================= */
+/* ================= Rendering: decision tree (black & white node-link diagram) ================= */
 const revealed = () => !!S.result;
-function stackBar(pr){
-  return `<div class="bar"><i style="width:${pr.me*100}%;background:var(--red)"></i><i style="width:${pr.db*100}%;background:var(--amber)"></i><i style="width:${pr.op*100}%;background:var(--green)"></i><i style="width:${pr.none*100}%;background:var(--none);opacity:.5"></i></div>`;
+const NW = 172, HG = 16, VG = 56, LH = 17, PADY = 9;
+const lightsArr = pr => `[${Math.round(pr.me*100)}, ${Math.round(pr.db*100)}, ${Math.round(pr.op*100)}, ${Math.round(pr.none*100)}]`;
+const DVS = {win:'win the bout', lose:'lose the bout', annul:'annulled', good:'favour you', bad:'hurt you', neutral:'neutral'};
+function buildTree(){
+  const m = S.moment;
+  return {id:'root', kind:'root', lines:[
+    {t:'situation', b:true}, {t:BANDS[m.band].label.toLowerCase()}, {t:`gap = ${m.gap.toFixed(1)} m`},
+    {t:`score = ${m.score.me}–${m.score.opp} · ${fmt(m.clock)}`}, {t:`your back foot = ${m.myBack.toFixed(1)} m`},
+    {t:`doubles = ${DVS[m.dv.kind]}`}
+  ], children: INTENTS.map(intentNode)};
 }
-const LEGEND = `<div class="legend"><span><i style="background:var(--red)"></i>Your light</span><span><i style="background:var(--amber)"></i>Double</span><span><i style="background:var(--green)"></i>Their light</span><span><i style="background:var(--none)"></i>No touch</span></div>`;
-function renderRoot(){
-  const m = S.moment, plan = S.plan;
-  const press = revealed()
-    ? `<div class="label" style="margin-top:10px">What was pushing ${esc(P().short)}</div><ul class="press">${m.why.map(w=>`<li>${esc(w)}</li>`).join('') || '<li>No strong situational pull. Style alone.</li>'}</ul>` : '';
-  return `<div class="root">
-    <div class="rhd"><span class="label">Situation</span><b>${BANDS[m.band].label}</b><span>· ${scoreLine(m)} · ${fmt(m.clock)} · your back foot ${m.myBack.toFixed(1)} m</span></div>
-    <label class="fld">Your read of the moment
-      <textarea data-root="1" placeholder="What matters most here? What do they want? What must you not allow? What have they shown you so far?">${esc(plan.root)}</textarea></label>
-    ${press}
-  </div>`;
-}
-function branchSummaryChips(id){
-  const b = S.plan.branches[id], m = S.moment, chips = [];
+function intentNode(it){
+  const b = S.plan.branches[it.id], m = S.moment, open = S.open.has(it.id);
+  const lines = [{t:`they: ${it.label.toLowerCase()}`, b:true},
+    {t:`estimate = ${b.like ? LIKE[b.like].l.toLowerCase() : '?'}`},
+    {t:`answer = ${b.resp ? R(b.resp).label.toLowerCase() : '?'}`}];
+  if(b.check) lines.push({t:`verdict = ${b.check.verdict.toLowerCase()}`});
   if(revealed()){
-    chips.push(`<span class="chip acc">${pct(m.dist[id])} likely</span>`);
-    if(id===m.intent) chips.push(`<span class="chip warn"><b>What they did</b></span>`);
-    if(S.result.read===id) chips.push(`<span class="chip acc"><b>You played this</b></span>`);
+    lines.push({t:`actual p = ${m.dist[it.id].toFixed(2)}`});
+    if(it.id===m.intent) lines.push({t:'◆ what they did', b:true});
+    if(S.result.read===it.id) lines.push({t:'▶ you played this', b:true});
   }
-  chips.push(b.like ? `<span class="chip">${LIKE[b.like].l}</span>` : `<span class="chip dim">Likelihood?</span>`);
-  chips.push(b.resp ? `<span class="chip">→ ${R(b.resp).label}</span>` : `<span class="chip dim">No answer yet</span>`);
-  if(b.check){ const c = {Optimal:'good',Sound:'good',Suboptimal:'warn',Mistake:'bad'}[b.check.verdict]; chips.push(`<span class="chip ${c}">${b.check.verdict}</span>`); }
-  return chips.join('');
+  lines.push({t: open ? '− collapse' : '+ expand', tg:true});
+  return {id:it.id, kind:'intent', lines,
+    edge: revealed() ? `p = ${m.dist[it.id].toFixed(2)}` : (b.like ? LIKE[b.like].l.toLowerCase() : ''),
+    actual: revealed() && it.id===m.intent, played: revealed() && S.result.read===it.id,
+    children: open ? answerKids(it) : []};
 }
-function branchHTML(id){
-  const it = I(id), b = S.plan.branches[id], m = S.moment;
-  const open = S.open.has(id) ? 'open' : '';
-  const cls = [revealed() && id===m.intent ? 'actual' : '', revealed() && S.result.read===id ? 'played' : ''].join(' ');
-  const opts = `<option value="">Choose your answer…</option>` + RESPONSES.map(r=>`<option value="${r.id}" ${b.resp===r.id?'selected':''}>${r.label} · ${r.sub}</option>`).join('');
-  const likeSeg = LIKE.slice(1).map(x=>`<button type="button" data-like="${x.v}" class="${b.like===x.v?'on':''}">${x.l}</button>`).join('');
-  let fb = '';
-  if(b.check){
-    const c = b.check;
-    fb = `<div class="fb"><span class="vd ${c.verdict}">${c.verdict}.</span>${esc(R(b.resp).label)} ranks ${c.rank} of 9 against ${esc(it.label.toLowerCase())} here.${c.best!==b.resp ? ` Best: ${esc(R(c.best).label)}.` : ''}
-      <div class="ex ${b.coach ? '' : 'wait'}" data-coach="${id}">${esc(b.coach || 'Your coach is reading your reasoning…')}</div></div>`;
+function answerKids(it){
+  const b = S.plan.branches[it.id], m = S.moment;
+  if(!b.resp) return [{id:it.id+':none', kind:'none', parent:it.id, edge:'you answer',
+    lines:[{t:'no answer yet', b:true},{t:'plan it in the panel'},{t:'below the tree'}]}];
+  const known = !!b.check || revealed();
+  const ev = branchEval(it.id, b.resp, m), mine = ev.rows.find(r=>r.id===b.resp);
+  const ans = {id:it.id+':ans', kind:'ans', parent:it.id, edge:'you answer', lines:[{t:`you: ${R(b.resp).label.toLowerCase()}`, b:true}], children:[]};
+  if(known){
+    ans.lines.push({t:`rank = ${ev.rank} / 9`},{t:`value = ${sgn(mine.v)}`},{t:`lights = ${lightsArr(mine.pr)}`});
+    ans.children = ev.beats.filter(x=>x.id!==it.id).slice(0,2).map(x => ({id:it.id+':beat:'+x.id, kind:'beat', parent:it.id, edge:'beaten by',
+      lines:[{t:`they: ${I(x.id).label.toLowerCase()}`, b:true},{t:`value = ${sgn(x.v)}`},{t:`lights = ${lightsArr(x.pr)}`}]}));
+    if(!ans.children.length) ans.children = [{id:it.id+':safe', kind:'beat', parent:it.id, edge:'if you misread',
+      lines:[{t:'nothing punishes', b:true},{t:'this badly from here'}]}];
+  } else ans.lines.push({t:'unchecked'},{t:'press check with coach'});
+  const kids = [ans];
+  if(known && ev.best!==b.resp){
+    const br = ev.rows[0];
+    kids.push({id:it.id+':best', kind:'best', parent:it.id, edge:'best answer',
+      lines:[{t:`best: ${R(br.id).label.toLowerCase()}`, b:true},{t:'rank = 1 / 9'},{t:`value = ${sgn(br.v)}`},{t:`lights = ${lightsArr(br.pr)}`}]});
   }
-  const showSubs = b.check || revealed();
-  let subs = '';
-  if(showSubs){
-    const ev = branchEval(id, b.resp || 'hold', m);
-    const allRows = ev.rows.map(r => `<div class="trow ${r.id===b.resp?'mine':''}"><span class="nm">${R(r.id).label}</span>${stackBar(r.pr)}<span class="num">${sgn(r.v)}</span></div>`).join('');
-    subs += `<details class="sub" data-sub="${id}:all" ${S.open.has(id+':all')?'open':''}><summary><span class="caret">▸</span>Every answer against ${esc(it.label.toLowerCase())} <span class="m">· ranked by value</span></summary><div class="subbody">${allRows}${LEGEND}<p class="note">${esc(PRINCIPLE[id])}</p></div></details>`;
-    if(b.resp){
-      const beatRows = ev.beats.length ? ev.beats.map(x => `<div class="trow ${x.id===id?'mine':''}"><span class="nm">${I(x.id).label}</span>${stackBar(x.pr)}<span class="num">${sgn(x.v)}</span></div>`).join('')
-        : '<p class="note">Nothing in their repertoire beats this answer badly from here.</p>';
-      subs += `<details class="sub" data-sub="${id}:beats" ${S.open.has(id+':beats')?'open':''}><summary><span class="caret">▸</span>What beats ${esc(R(b.resp).label.toLowerCase())} <span class="m">· their actions that counter it</span></summary><div class="subbody">${beatRows}${ev.beats.length?LEGEND:''}</div></details>`;
-    }
-  }
-  return `<details class="br ${cls}" data-br="${id}" ${open}>
-    <summary><span class="bh"><span class="caret">▸</span><span><span class="fam">They · ${it.fam==='off'?'offence':'defence'}</span><br><b>${it.label}</b> <span style="color:var(--muted);font-size:13px">${it.sub}</span></span></span><span class="bchips">${branchSummaryChips(id)}</span></summary>
-    <div class="bbody">
-      <div class="fld">How likely is this right now?<div class="seg" data-likeseg="${id}">${likeSeg}</div></div>
-      <label class="fld">If ${esc(P().short)} does this, I…<select class="sel" data-resp="${id}">${opts}</select></label>
-      <label class="fld">Why<textarea data-why="${id}" placeholder="Distance, timing, what you have seen from ${esc(P().obj)}, what the score and clock demand…">${esc(b.why)}</textarea></label>
-      <div class="bact">
-        <button class="btn ghost" type="button" data-check="${id}" ${b.resp?'':'disabled'}>Check with coach</button>
-        <button class="btn play" type="button" data-play="${id}" ${b.resp && !revealed() ? '' : 'disabled'}>Play this branch</button>
-      </div>
-      ${fb}
-      ${subs ? `<div class="subs">${subs}</div>` : ''}
-    </div>
-  </details>`;
+  return kids;
+}
+function layoutTree(root){
+  const levels = [];
+  (function measure(n, d){
+    n.d = d; n.h = PADY*2 + n.lines.length*LH; n.children = n.children || [];
+    n.children.forEach(k => measure(k, d+1));
+    n.cw = n.children.reduce((a,k)=>a+k.w,0) + HG*Math.max(0, n.children.length-1);
+    n.w = Math.max(NW, n.cw); levels[d] = Math.max(levels[d]||0, n.h);
+  })(root, 0);
+  const ys = []; let y = 4; levels.forEach((h,d) => { ys[d] = y; y += h + VG; });
+  (function place(n, x){
+    n.cx = x + n.w/2; n.y = ys[n.d];
+    let cx = x + (n.w - n.cw)/2; n.children.forEach(k => { place(k, cx); cx += k.w + HG; });
+  })(root, 0);
+  return {W: root.w, H: y - VG + 8};
+}
+function zoomFor(W){
+  if(S.zoom !== 'fit') return S.zoom;
+  const cw = ($('#treeScroll').clientWidth || 800) - 26;
+  return clamp(cw / W, .75, 1);
 }
 function renderTree(){
   if(!S.moment) return;
@@ -737,19 +789,64 @@ function renderTree(){
   $('#treeCard').hidden = !show;
   if(!show) return;
   $('#treeIntro').innerHTML = revealed()
-    ? `Revealed. Each branch now shows how likely it really was. <b>What they did</b> marks their actual plan and <b>You played this</b> marks your bet. You can still change answers and check them to study the position.`
-    : `Open a branch for each action you think matters. Mark how likely it is, choose your answer, write your reasoning and press <b>Check with coach</b>. When you are ready, press <b>Play this branch</b> on the one you are betting on.`;
-  $('#tree').innerHTML = renderRoot() + `<div class="branches">${INTENTS.map(x=>branchHTML(x.id)).join('')}</div>`;
+    ? 'Revealed. Each branch shows its real likelihood <b>p</b>. <b>◆</b> marks what they did, <b>▶</b> and a dashed outline mark the branch you played. Keep changing answers and checking them to study the position.'
+    : 'Click a branch to expand it and plan it in the panel below: how likely it is, your answer, your reasoning. <b>Check with coach</b> grades the branch and grows it: your answer, what beats it, and the best answer. <b>Play this branch</b> commits your read.';
+  const root = buildTree(), {W, H} = layoutTree(root), z = zoomFor(W);
+  const nodes = [], edges = [];
+  (function walk(n){ nodes.push(n); n.children.forEach(k => { edges.push([n,k]); walk(k); }); })(root);
+  const svg = edges.map(([p,k]) => {
+    const x1 = p.cx, y1 = p.y + p.h, x2 = k.cx, y2 = k.y - 2, mx = (x1+x2)/2, my = (y1+y2)/2;
+    const dir = Math.sign(x2 - x1), anchor = dir>0 ? 'start' : dir<0 ? 'end' : 'start';
+    const lx = mx + (dir>0 ? 8 : dir<0 ? -8 : 7);
+    return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#000" stroke-width="1.2" marker-end="url(#tarr)"/>` +
+      (k.edge ? `<text x="${lx}" y="${my+4}" text-anchor="${anchor}" font-size="12.5" fill="#000" stroke="#fff" stroke-width="4" paint-order="stroke" font-family="IBM Plex Sans, system-ui, sans-serif">${esc(k.edge)}</text>` : '');
+  }).join('');
+  const sel = S.sel;
+  const boxes = nodes.map(n => `<button type="button" class="tn ${n.kind} ${sel===n.id || (n.kind!=='intent' && n.kind!=='root' && false) ? 'sel' : ''} ${n.actual?'actual':''} ${n.played?'played':''}" data-node="${n.id}" data-kind="${n.kind}" data-parent="${n.parent||''}" style="left:${n.cx-NW/2}px;top:${n.y}px;width:${NW}px;height:${n.h}px" aria-label="${esc(n.lines.map(l=>l.t).join(', '))}">${n.lines.map(l=>`<span class="${l.b?'b':''}${l.tg?' tg':''}">${esc(l.t)}</span>`).join('')}</button>`).join('');
+  $('#tree').innerHTML = `<div class="tz" style="width:${W*z}px;height:${H*z}px"><div class="tzi" style="width:${W}px;height:${H}px;transform:scale(${z})">
+    <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><defs><marker id="tarr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#000"/></marker></defs>${svg}</svg>
+    ${boxes}</div></div>`;
+  $('#zoomLbl').textContent = S.zoom==='fit' ? `Fit · ${Math.round(z*100)}%` : `${Math.round(z*100)}%`;
+  const sc = $('#treeScroll'), target = nodes.find(n => n.id===(S.sel||'root')) || root;
+  const tx = target.cx*z, inner = sc.clientWidth - 26, tzLeft = Math.max(0, (inner - W*z)/2);
+  if(tx + tzLeft < sc.scrollLeft + 60 || tx + tzLeft > sc.scrollLeft + sc.clientWidth - 60) sc.scrollLeft = Math.max(0, tx + tzLeft - sc.clientWidth/2);
+  renderEditor();
   $('#reviewOut').textContent = S.plan.review || '';
 }
-function refreshBranch(id){
-  const el = document.querySelector(`details[data-br="${id}"]`);
-  if(!el) return;
-  const active = document.activeElement, wasWhy = active && active.dataset && active.dataset.why===id;
-  const tmp = document.createElement('div'); tmp.innerHTML = branchHTML(id);
-  el.replaceWith(tmp.firstElementChild);
-  if(wasWhy){ const t = document.querySelector(`textarea[data-why="${id}"]`); if(t){ t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }
+function renderEditor(){
+  const ed = $('#treeEd'), m = S.moment;
+  if(S.sel==='root' || !S.sel){
+    const press = revealed()
+      ? `<div><div class="edlbl">What was pushing ${esc(P().short)}</div><ul class="press">${m.why.map(w=>`<li>${esc(w)}</li>`).join('') || '<li>No strong situational pull. Style alone.</li>'}</ul></div>` : '';
+    ed.innerHTML = `<div class="edh"><b>Root · the situation</b><small>${BANDS[m.band].label} · ${scoreLine(m)} · ${fmt(m.clock)} · your back foot ${m.myBack.toFixed(1)} m</small></div>
+      <label class="fld">Your read of the moment
+        <textarea data-root="1" placeholder="What matters most here? What do they want? What must you not allow? What have they shown you so far?">${esc(S.plan.root)}</textarea></label>
+      ${press}
+      <p class="note">Select a branch in the tree to plan your answer to it.</p>`;
+    return;
+  }
+  const id = S.sel, it = I(id), b = S.plan.branches[id];
+  const opts = `<option value="">Choose your answer…</option>` + RESPONSES.map(r=>`<option value="${r.id}" ${b.resp===r.id?'selected':''}>${r.label} · ${r.sub}</option>`).join('');
+  const likeSeg = LIKE.slice(1).map(x=>`<button type="button" data-like="${x.v}" class="${b.like===x.v?'on':''}">${x.l}</button>`).join('');
+  let fb = '';
+  if(b.check){
+    const c = b.check;
+    fb = `<div class="fb"><b>${c.verdict}.</b> ${esc(R(b.resp).label)} ranks ${c.rank} of 9 against ${esc(it.label.toLowerCase())} here.${c.best!==b.resp ? ` Best: ${esc(R(c.best).label)}.` : ''}
+      <div class="ex ${b.coach ? '' : 'wait'}" data-coach="${id}">${esc(b.coach || 'Your coach is reading your reasoning…')}</div></div>`;
+  }
+  const principle = (b.check || revealed()) ? `<p class="note"><b>Principle.</b> ${esc(PRINCIPLE[id])}</p>` : '';
+  ed.innerHTML = `<div class="edh"><b>Branch · they: ${esc(it.label.toLowerCase())}</b><small>${esc(it.sub)}${revealed() ? ` · actual p = ${m.dist[id].toFixed(2)}${id===m.intent ? ' · what they did' : ''}` : ''}</small></div>
+    <div class="fld">How likely is this right now?<div class="seg" data-likeseg="${id}">${likeSeg}</div></div>
+    <label class="fld">If ${esc(P().short)} does this, I…<select class="sel" data-resp="${id}">${opts}</select></label>
+    <label class="fld">Why<textarea data-why="${id}" placeholder="Distance, timing, what you have seen from ${esc(P().obj)}, what the score and clock demand…">${esc(b.why)}</textarea></label>
+    <div class="bact">
+      <button class="bwbtn o" type="button" data-check="${id}" ${b.resp?'':'disabled'}>Check with coach</button>
+      <button class="bwbtn" type="button" data-play="${id}" ${b.resp && !revealed() ? '' : 'disabled'}>Play this branch</button>
+      <button class="bwbtn o" type="button" data-sel="root">Back to root</button>
+    </div>
+    ${fb}${principle}`;
 }
+function refreshBranch(){ renderTree(); }
 
 /* ================= Rendering: quick mode, result, stats ================= */
 function renderQuick(){
@@ -840,7 +937,7 @@ function fallbackBranchCoach(id, b, ev){
   const it = I(id), mine = R(b.resp);
   let s = '';
   if(ev.verdict==='Optimal') s += `Right answer. ${mine.label} is the strongest reply to ${it.label.toLowerCase()} from this distance and score. `;
-  else s += `${mine.label} is ${ev.verdict.toLowerCase()} against ${it.label.toLowerCase()} here; ${R(ev.best).label.toLowerCase()} is better. `;
+  else s += `${mine.label} is ${({Sound:'sound but not best',Suboptimal:'suboptimal',Mistake:'a mistake'})[ev.verdict]} against ${it.label.toLowerCase()} here; ${R(ev.best).label.toLowerCase()} is better. `;
   s += PRINCIPLE[id] + ' ';
   const others = ev.beats.filter(x=>x.id!==id).slice(0,3).map(x=>I(x.id).label.toLowerCase());
   if(others.length) s += `If you are wrong about the branch, ${mine.label.toLowerCase()} is punished by ${others.join(', ')}.`;
@@ -1032,7 +1129,7 @@ function nextMoment(useLive){
   S.result = null; S.read = null; $('#result').hidden = true;
   const keepPlan = S.mode==='drill' && S.plan;
   S.moment = makeMoment();
-  if(!keepPlan){ S.plan = emptyPlan(); S.open = new Set(); }
+  if(!keepPlan){ S.plan = emptyPlan(); S.open = new Set(); S.sel = 'root'; }
   else { S.plan.review = ''; }
   renderBoard(); renderMoment(); renderTree(); renderQuick();
   if(useLive) narrate(S.moment); else { $('#narr').textContent = templateNarration(S.moment); $('#narr').classList.remove('wait'); }
@@ -1046,6 +1143,7 @@ function commit(readId, respId, frozen){
   S.result = res;
   if(res.read) S.open.add(res.read);
   S.open.add(S.moment.intent);
+  S.sel = S.moment.intent;
   renderBoard(); renderResult(res); renderTree(); renderQuick(); renderStats();
   voices(S.moment, res);
   $('#nextBtn').innerHTML = S.over ? 'See bout result' : 'Next exchange<kbd>N</kbd>';
@@ -1088,30 +1186,43 @@ $('#debriefBtn').addEventListener('click', fullDebrief);
 $('#reviewBtn').addEventListener('click', reviewTree);
 $('#liveToggle').addEventListener('change', setLive);
 $('#timed').addEventListener('change', () => { S.timed = parseFloat($('#timed').value)||0; });
-$('#expandAll').addEventListener('click', () => { INTENTS.forEach(x => { S.open.add(x.id); S.open.add(x.id+':all'); S.open.add(x.id+':beats'); }); $$('#tree details').forEach(d => d.open = true); });
-$('#collapseAll').addEventListener('click', () => { S.open.clear(); $$('#tree details').forEach(d => d.open = false); });
+$('#expandAll').addEventListener('click', () => { INTENTS.forEach(x => S.open.add(x.id)); renderTree(); });
+$('#collapseAll').addEventListener('click', () => { S.open.clear(); renderTree(); });
 
-const tree = $('#tree');
-tree.addEventListener('toggle', e => {
-  const d = e.target; if(!(d instanceof HTMLDetailsElement)) return;
-  const key = d.dataset.br || d.dataset.sub; if(!key) return;
-  if(d.open) S.open.add(key); else S.open.delete(key);
-}, true);
-tree.addEventListener('input', e => {
+const tcard = $('#treeCard');
+tcard.addEventListener('input', e => {
   const t = e.target;
   if(t.dataset.root) S.plan.root = t.value;
-  else if(t.dataset.why){ S.plan.branches[t.dataset.why].why = t.value; }
+  else if(t.dataset.why) S.plan.branches[t.dataset.why].why = t.value;
 });
-tree.addEventListener('change', e => {
+tcard.addEventListener('change', e => {
   const t = e.target;
-  if(t.dataset.resp){ const b = S.plan.branches[t.dataset.resp]; b.resp = t.value; b.check = null; b.coach = ''; refreshBranch(t.dataset.resp); }
+  if(t.dataset.resp){ const b = S.plan.branches[t.dataset.resp]; b.resp = t.value; b.check = null; b.coach = ''; S.open.add(t.dataset.resp); renderTree(); }
 });
-tree.addEventListener('click', e => {
+tcard.addEventListener('click', e => {
+  const node = e.target.closest('[data-node]');
+  if(node){
+    const id = node.dataset.node, kind = node.dataset.kind;
+    if(kind==='root') S.sel = 'root';
+    else if(kind==='intent'){
+      if(S.sel===id){ if(S.open.has(id)) S.open.delete(id); else S.open.add(id); }
+      else { S.sel = id; S.open.add(id); }
+    } else S.sel = node.dataset.parent;
+    renderTree(); return;
+  }
   const like = e.target.closest('[data-like]');
-  if(like){ const id = like.closest('[data-likeseg]').dataset.likeseg; const b = S.plan.branches[id]; const v = +like.dataset.like; b.like = b.like===v ? 0 : v; refreshBranch(id); return; }
+  if(like){ const id = like.closest('[data-likeseg]').dataset.likeseg; const b = S.plan.branches[id]; const v = +like.dataset.like; b.like = b.like===v ? 0 : v; renderTree(); return; }
   const chk = e.target.closest('[data-check]'); if(chk && !chk.disabled){ checkBranch(chk.dataset.check); return; }
-  const play = e.target.closest('[data-play]'); if(play && !play.disabled){ const id = play.dataset.play; commit(id, S.plan.branches[id].resp, false); }
+  const play = e.target.closest('[data-play]'); if(play && !play.disabled){ const id = play.dataset.play; commit(id, S.plan.branches[id].resp, false); return; }
+  const sel = e.target.closest('[data-sel]'); if(sel){ S.sel = sel.dataset.sel; renderTree(); return; }
+  const zm = e.target.closest('[data-zoom]');
+  if(zm){
+    const W = layoutTree(buildTree()).W, cur = zoomFor(W), a = zm.dataset.zoom;
+    S.zoom = a==='fit' ? 'fit' : clamp(Math.round((cur + (a==='in' ? .15 : -.15))*100)/100, .35, 1.4);
+    renderTree();
+  }
 });
+let rzT = 0; addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { if(S.zoom==='fit' && S.moment) renderTree(); }, 150); });
 $('#conf').addEventListener('click', e => { const b = e.target.closest('button'); if(b){ S.conf = b.dataset.c; renderQuick(); } });
 $('#readOpts').addEventListener('click', e => { const b = e.target.closest('[data-qread]'); if(b){ S.read = b.dataset.qread; renderQuick(); } });
 $('#respOpts').addEventListener('click', e => { const b = e.target.closest('[data-qresp]'); if(b && !b.disabled) commit(S.read, b.dataset.qresp, false); });
