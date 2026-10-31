@@ -133,14 +133,14 @@ details.add summary{cursor:pointer;font-weight:600}
   <header class="head">
     <div>
       <h1>Épée Read Room</h1>
-      <p id="lvlDesc">Level 1: single actions against real opponents. Build your tree for one fencer, check every answer, then read one exchange at a time.</p>
+      <p id="lvlDesc">Level 1: single actions against real opponents. Map every action a fencer can throw at you, your answer to each, and what it leads to.</p>
     </div>
     <div class="hright">
       <div class="levels">
         <button type="button" class="lvlbtn" id="lvlBtn" aria-expanded="false" aria-controls="lvlMenu"><span id="lvlName">Level 1 · Single actions</span><i id="lvlCaret">▾</i></button>
         <div class="lvlmenu" id="lvlMenu" hidden>
           <button type="button" data-level="0"><b>Level 0 · Ground</b><span>Every tree you have built, for every fencer</span></button>
-          <button type="button" data-level="1"><b>Level 1 · Single actions</b><span>One opponent, one exchange at a time</span></button>
+          <button type="button" data-level="1"><b>Level 1 · Single actions</b><span>Map one opponent: every action and your answer</span></button>
           <button type="button" data-level="2"><b>Level 2 · Real bout</b><span>Locked: score, clock, piste and a whole bout</span></button>
         </div>
       </div>
@@ -211,19 +211,10 @@ details.add summary{cursor:pointer;font-weight:600}
 
   <section aria-labelledby="h2s">
     <h2 id="h2s"><span>2 · Your decision tree</span><em id="exNo"></em></h2>
-    <div class="ex" id="exBox"></div>
     <div class="tscroll" id="tscroll"><div class="tree" id="tree"></div></div>
-    <p class="key">Edit the tree directly: mark how likely each branch is, pick your answer and write why. <b>Check</b> shows the result, what happens if you misread, and whether it comes from your own experience against this fencer. <b>Bet on this</b> commits your read for this exchange.</p>
+    <p class="key">Edit the tree directly: pick your answer to each of their actions and write why. <b>Check</b> shows the result, what happens if they do one of their other actions instead, and whether it comes from your own experience against this fencer.</p>
   </section>
 
-  <section class="reveal" id="reveal" hidden aria-live="polite">
-    <div class="call" id="rCall"></div>
-    <p id="rText"></p>
-    <p class="muted" id="rWhy"></p>
-    <div class="row"><button class="btn" type="button" id="nextBtn">Next exchange</button></div>
-  </section>
-
-  <p class="log" id="log"></p>
   </div>
 </div>
 
@@ -310,7 +301,6 @@ const TYPES = {
 };
 const VAL = {you:1, double:0, none:0, them:-1};
 const RESULT_TXT = {you:'You score', them:'They score', double:'Double', none:'No touch'};
-const LIKE = ['?', 'Unlikely', 'Possible', 'Likely'];
 
 /* ---------- Your real opponents (from your notes) ---------- */
 const BUILTIN = [
@@ -389,15 +379,6 @@ function planFor(f){
   f.branches.forEach(b => { if(!p[b.key]) p[b.key] = {like:0, resp:'', why:'', checked:false, coach:'', key:''}; });
   return p;
 }
-function newExchange(){
-  const f = F(); S.ex++; S.bet = null;
-  let r = Math.random(), br = f.branches[f.branches.length-1];
-  for(const b of f.branches){ r -= b.p; if(r <= 0){ br = b; break; } }
-  const honest = Math.random() < f.honesty;
-  const others = f.branches.filter(b => b.key!==br.key);
-  const shown = honest || !others.length ? br : others[Math.floor(Math.random()*others.length)];
-  S.cur = {key:br.key, cue:shown.cue, honest: honest || !others.length};
-}
 const bestVal = (f, br) => Math.max(...Object.keys(ANS).map(a => VAL[res(f, br, a).r]));
 const bestAnswers = (f, br) => { const b = bestVal(f, br); return Object.keys(ANS).filter(a => VAL[res(f, br, a).r] === b); };
 function verdict(f, br, ans){
@@ -427,19 +408,11 @@ function renderFencers(){
     ${f.works?`<dt>Works for you</dt><dd>${esc(f.works)}</dd>`:''}${f.hurts?`<dt>Hurts you</dt><dd>${esc(f.hurts)}</dd>`:''}</dl>
     ${f.custom?`<button type="button" class="del" data-del="${f.id}">Remove ${esc(f.name)}</button>`:''}</div>`;
 }
-function renderExchange(){
-  const f = F();
-  $('#exNo').textContent = `${f.name} · exchange ${S.ex}`;
-  $('#exBox').innerHTML = `<span class="muted">En garde at lunge distance. What you see:</span><span class="cue"><b>${esc(S.cur.cue)}.</b></span>` +
-    (S.bet ? `<span class="muted">Revealed below.</span>` : `<span class="muted">Bet on the branch you think is coming.</span>`);
-}
 function branchHTML(f, br, row){
-  const p = plan()[br.key], revealed = !!S.bet, actual = revealed && S.cur.key===br.key, bet = revealed && S.bet===br.key;
-  const theyNode = `<div class="node they ${actual?'actual':''} ${bet?'bet':''}" id="n-${br.key}" style="grid-row:${row};grid-column:2">
+  const p = plan()[br.key];
+  const theyNode = `<div class="node they" id="n-${br.key}" style="grid-row:${row};grid-column:2">
     <div><span class="s">${esc(f.name)} ${br.side.toLowerCase()}</span><div class="t">${esc(br.label)}</div><div class="s">${esc(br.sub||'')}</div><div class="s">Tell: ${esc(br.cue)}</div></div>
-    <div class="fl">How likely?<div class="seg" data-likeseg="${br.key}">${[1,2,3].map(v => `<button type="button" data-like="${v}" class="${p.like===v?'on':''}">${LIKE[v]}</button>`).join('')}</div></div>
-    ${revealed ? `<div class="s">Real: ${f.name} does this ${Math.round(br.p*100)}% of the time.${actual ? ' <b>◆ This is what happened.</b>' : ''}${bet ? ' <b>▶ You bet on this.</b>' : ''}</div>` : ''}
-    <div class="row"><button class="btn" type="button" data-bet="${br.key}" ${p.resp && !revealed ? '' : 'disabled'}>Bet on this</button></div>
+    <div class="s"><b style="color:#000">${Math.round(br.p*100)}%</b> of the time</div>
   </div>`;
   const opts = `<option value="">Choose your answer…</option>` + Object.entries(ANS).map(([k,a]) => `<option value="${k}" ${p.resp===k?'selected':''}>${a.label} · ${a.sub}</option>`).join('');
   const ansNode = `<div class="node ans" id="a-${br.key}" style="grid-row:${row};grid-column:3">
@@ -459,7 +432,7 @@ function branchHTML(f, br, row){
         <div>${esc(r.why)}</div>
         ${r.yours ? `<span class="yours">From your experience against ${esc(f.name)}</span>` : ''}
         ${showBetter ? `<div><b>Better:</b> ${bests.map(a => ANS[a].label.toLowerCase()).join(' or ')}.</div>` : ''}
-        <div class="misread"><b>If you misread</b>${mis}</div>
+        <div class="misread"><b>Same answer against ${esc(f.name)}'s other actions</b>${mis}</div>
       </div>
       ${p.coach || live() ? `<div class="coach ${p.coach?'':'wait'}" data-coach="${br.key}">${esc(p.coach || 'Your coach is reading your reasoning…')}</div>` : ''}
     </div>`;
@@ -500,22 +473,7 @@ function drawWires(){
 }
 new ResizeObserver(() => drawWires()).observe($('#tree'));
 
-function renderReveal(){
-  const r = $('#reveal');
-  if(!S.bet){ r.hidden = true; return; }
-  const f = F(), bb = brOf(f, S.bet), act = brOf(f, S.cur.key), p = plan()[S.bet], out = res(f, act, p.resp), right = S.bet===S.cur.key;
-  r.hidden = false;
-  $('#rCall').textContent = RESULT_TXT[out.r];
-  $('#rText').textContent = `${f.name} went for ${act.label.toLowerCase()}. You bet on "${bb.label.toLowerCase()}" and answered with ${ANS[p.resp].label.toLowerCase()}. Your read was ${right ? 'right' : 'wrong'}.`;
-  $('#rWhy').textContent = out.why + (S.cur.honest ? ' The tell was honest this time.' : ` The tell was a fake this time: it looked like ${f.branches.find(b=>b.cue===S.cur.cue).label.toLowerCase()}.`);
-}
-function renderLog(){
-  const n = S.log.length; if(!n){ $('#log').textContent = ''; return; }
-  const right = S.log.filter(x => x.right).length, c = {you:0, them:0, double:0, none:0};
-  S.log.forEach(x => c[x.r]++);
-  $('#log').textContent = `Practice against ${F().name}: ${right} of ${n} reads right. You scored ${c.you}, ${F().name} scored ${c.them}, doubles ${c.double}, no touch ${c.none}.`;
-}
-function renderAll(){ renderFencers(); renderExchange(); renderTree(); renderReveal(); renderLog(); }
+function renderAll(){ renderFencers(); $('#exNo').textContent = F().name; renderTree(); }
 
 /* ---------- Coach (Claude) ---------- */
 let sampleFn = null, avail = 'checking';
@@ -544,9 +502,9 @@ Branch being checked: ${f.name} ${br.side.toLowerCase()}: ${br.label} (${br.sub 
 Fencer's answer: ${ANS[p.resp].label} (${ANS[p.resp].sub}).
 Fencer's reasoning: ${p.why.trim() ? '"' + p.why.trim().slice(0,800) + '"' : '(none written)'}
 Result (fixed by the simulator, do not contradict): ${RESULT_TXT[r.r]}. ${r.why}${r.yours ? ' (This result comes from the fencer\'s own experience against this opponent.)' : ''} Verdict: ${verdict(f, br, p.resp)}. Best answers here: ${bestAnswers(f, br).map(a=>ANS[a].label.toLowerCase()).join(', ')}.
-If she misread the branch:
+The same answer against the opponent's other actions:
 ${mis}
-In 2–4 short sentences (under 85 words), plain prose: say whether her reasoning is right, explain the timing, distance or blade logic behind the result using what is known about ${f.name}, and if a better answer exists say which and why. If the answer also covers the other branches well, say so.`;
+In 2–4 short sentences (under 85 words), plain prose: say whether her reasoning is right, explain the timing, distance or blade logic behind the result using what is known about ${f.name}, and if a better answer exists say which and why. If the answer also covers her other actions well, say so. This is a simulator for mapping possibilities, not a guessing game: do not talk about predicting or betting.`;
   try{
     await sampleFn(prompt, {cache:false, onText:({text}) => { if(p.key===k){ p.coach = text; savePlans(); const el = document.querySelector(`[data-coach="${key}"]`); if(el){ el.textContent = text; el.classList.remove('wait'); drawWires(); } } }});
   }catch(e){
@@ -576,17 +534,17 @@ $('#addForm').addEventListener('submit', e => {
              notes:v('#fNotes'), works:v('#fWorks'), hurts:v('#fHurts'), branches, over:{}};
   custom.push(f); saveCustom();
   $('#addForm').reset(); $('#addBox').open = false;
-  S.fid = f.id; S.ex = 0; S.log = []; newExchange(); renderAll();
+  S.fid = f.id; renderAll();
 });
 
 /* ---------- Shared helpers ---------- */
 function selectFencer(id, openCard){
-  S.fid = id; S.cardOpen = openCard ? id : null; S.ex = 0; S.log = []; newExchange(); renderAll();
+  S.fid = id; S.cardOpen = openCard ? id : null; renderAll();
 }
 function removeFencer(id){
   custom = custom.filter(f => f.id!==id); saveCustom(); delete S.plans[id]; savePlans();
   if(S.cardOpen===id) S.cardOpen = null;
-  if(S.fid===id){ S.fid = 'nat'; S.ex = 0; S.log = []; newExchange(); }
+  if(S.fid===id){ S.fid = 'nat'; }
   renderAll();
 }
 $('#fdetail').addEventListener('click', e => { const d = e.target.closest('[data-del]'); if(d) removeFencer(d.dataset.del); });
@@ -613,7 +571,6 @@ function renderGround(){
     const p = S.plans[f.id] || {}, n = f.branches.length, gid = 'g-' + f.id;
     const rows = f.branches.map((b, i) => {
       const x = p[b.key] || {}, row = i + 2;
-      const like = x.like ? LIKE[x.like] : 'not marked';
       let ansHTML, resHTML;
       if(x.resp){
         ansHTML = `<div class="t">${esc(ANS[x.resp].label)}</div>${x.why ? `<div class="why">${esc(x.why)}</div>` : '<div class="s">No reasoning written</div>'}`;
@@ -624,7 +581,7 @@ function renderGround(){
         ansHTML = `<div class="s">No answer yet</div>`;
         resHTML = `<div class="node result empty" id="${gid}-r-${b.key}" style="grid-row:${row};grid-column:4"><div class="s">—</div></div>`;
       }
-      return `<div class="node" id="${gid}-n-${b.key}" style="grid-row:${row};grid-column:2"><div class="s">${esc(b.side)} · ${Math.round(b.p*100)}%</div><div class="t">${esc(b.label)}</div><div class="s">Your estimate: ${like}</div></div>
+      return `<div class="node" id="${gid}-n-${b.key}" style="grid-row:${row};grid-column:2"><div class="s">${esc(b.side)} · ${Math.round(b.p*100)}%</div><div class="t">${esc(b.label)}</div></div>
         <div class="node ${x.resp?'':'result empty'}" id="${gid}-a-${b.key}" style="grid-row:${row};grid-column:3">${ansHTML}</div>${resHTML}`;
     }).join('');
     return `<section class="gblock" aria-label="${esc(f.name)}">
@@ -646,7 +603,7 @@ $('#gTrees').addEventListener('click', e => { const b = e.target.closest('[data-
 const LEVEL_NAMES = ['Level 0 · Ground', 'Level 1 · Single actions', 'Level 2 · Real bout'];
 const LEVEL_DESC = [
   'Level 0: the ground. Every decision tree you have built, for every fencer, in one place.',
-  'Level 1: single actions against real opponents. Build your tree for one fencer, check every answer, then read one exchange at a time.',
+  'Level 1: single actions against real opponents. Map every action a fencer can throw at you, your answer to each, and what it leads to.',
   'Level 2: a real bout. Locked for now.'
 ];
 function setLevel(n){
@@ -684,22 +641,11 @@ tree.addEventListener('change', e => {
   if(t.dataset.resp){ const p = plan()[t.dataset.resp]; p.resp = t.value; p.checked = false; p.coach = ''; savePlans(); renderTree(); }
 });
 tree.addEventListener('click', e => {
-  const like = e.target.closest('[data-like]');
-  if(like){ const key = like.closest('[data-likeseg]').dataset.likeseg, p = plan()[key], v = +like.dataset.like; p.like = p.like===v ? 0 : v; savePlans(); renderTree(); return; }
   const chk = e.target.closest('[data-check]'); if(chk && !chk.disabled){ check(chk.dataset.check); return; }
-  const bet = e.target.closest('[data-bet]');
-  if(bet && !bet.disabled){
-    S.bet = bet.dataset.bet;
-    const f = F(), out = res(f, brOf(f, S.cur.key), plan()[S.bet].resp);
-    S.log.push({right: S.bet===S.cur.key, r: out.r});
-    renderExchange(); renderTree(); renderReveal(); renderLog();
-    $('#reveal').scrollIntoView({block:'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
-  }
 });
-$('#nextBtn').addEventListener('click', () => { newExchange(); renderExchange(); renderTree(); renderReveal(); });
 $('#liveToggle').addEventListener('change', () => renderTree());
 
-newExchange(); renderAll();
+renderAll();
 let startLevel = 1; try{ const v = parseInt(localStorage.getItem('erl-level')); if(v===0 || v===2) startLevel = v; }catch(e){}
 setLevel(startLevel);
 })();
